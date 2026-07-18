@@ -43,9 +43,20 @@ a:hover { text-decoration: underline; }
   max-width: var(--maxw); margin: 0 auto; padding: 0 16px;
   display: flex; align-items: center; gap: 18px; height: 60px;
 }
-.brand { display: flex; flex-direction: column; line-height: 1.15; }
-.brand b { font-size: 17px; letter-spacing: .5px; }
-.brand span { font-size: 11px; opacity: .8; }
+.brand { display: flex; flex-direction: column; line-height: 1.18; position: relative; padding-left: 13px; }
+.brand::before {
+  content: ""; position: absolute; left: 0; top: 1px; bottom: 1px; width: 4px;
+  background: linear-gradient(180deg, #ffd479 0%, #c9952b 100%);
+  border-radius: 2px; box-shadow: 0 0 6px rgba(201,149,43,.5);
+}
+.brand b {
+  font-size: 23px; font-weight: 700; letter-spacing: 1px;
+  background: linear-gradient(90deg, #ffffff 0%, #fff0c9 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,.10);
+}
+.brand span { font-size: 11px; opacity: .8; letter-spacing: .4px; }
 .nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
 .nav a {
   color: #dfeaf3; padding: 8px 12px; border-radius: 8px; white-space: nowrap;
@@ -219,7 +230,7 @@ footer.site { max-width: var(--maxw); margin: 0 auto; padding: 16px; color: var(
 
 @media (max-width: 720px) {
   .topbar .top-row { flex-wrap: wrap; padding: 8px 12px; min-height: 0; }
-  .brand b { font-size: 15px; }
+  .brand b { font-size: 19px; letter-spacing: .5px; }
   .topbar .meta { order: 2; align-items: flex-end; }
   .navbar { flex-wrap: wrap; }
   .navbar a { flex: 1 1 33%; min-width: 84px; }
