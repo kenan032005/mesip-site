@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>伊拉克专题 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=1784397243">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -42,13 +42,30 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js"></script>
-<script src="assets/js/common.js"></script>
-<script src="assets/data.js"></script>
+<script src="assets/js/api.js?v=1784397243"></script>
+<script src="assets/js/common.js?v=1784397243"></script>
+<script src="assets/data.js?v=1784397243"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
-  function all() { return window.__DB__.events || []; }
+  // 捕获一次，避免每次请求都重复读取可能不存在的全局对象
+  var DB = window.__DB__ || null;
+  window.__MESIP_DB_OK__ = !!DB;
+
+  function all() { return (DB && DB.events) || []; }
+  function byId(id) {
+    var arr = all();
+    for (var i = 0; i < arr.length; i++) {
+      if (String(arr[i].id) === String(id)) return arr[i];
+    }
+    return null;
+  }
+  function relatedOf(e) {
+    if (!e) return [];
+    return all().filter(function (x) {
+      return x.country === e.country && String(x.id) !== String(e.id);
+    }).slice(0, 5);
+  }
   function filt(qs) {
     var p = new URLSearchParams(qs || "");
     var arr = all().slice();
@@ -63,19 +80,38 @@ window.__STATIC__ = true;
     return arr;
   }
   function match(path) {
-    if (path === "/api/overview") return window.__DB__.overview;
-    if (path === "/api/iraq") return window.__DB__.iraq;
-    if (path === "/api/reports") return { reports: window.__DB__.reports };
-    if (path === "/api/countries") return { countries: ((window.__DB__.overview || {}).countries || []) };
-    if (path.indexOf("/api/event/") === 0) { var id = path.split("/").pop(); return window.__DB__.eventMap[id] || { event: null, related: [] }; }
-    if (path.indexOf("/api/country/") === 0) { var n = decodeURIComponent(path.split("/").pop()); return window.__DB__.countryMap[n] || { country: null, events: [], risk_history: [] }; }
-    if (path.indexOf("/api/report/") === 0) { var d = path.split("/").pop(); return window.__DB__.reportMap[d] || { report: null }; }
+    if (!DB) throw new Error("数据未成功加载（data.js 缺失或解析失败），请刷新页面重试");
+    if (path === "/api/overview") return DB.overview;
+    if (path === "/api/iraq") return DB.iraq;
+    if (path === "/api/reports") return { reports: DB.reports };
+    if (path === "/api/countries") return { countries: ((DB.overview || {}).countries || []) };
+    if (path.indexOf("/api/event/") === 0) { var id = path.split("/").pop(); var e = byId(id); return { event: e, related: relatedOf(e) }; }
+    if (path.indexOf("/api/country/") === 0) { var n = decodeURIComponent(path.split("/").pop()); return DB.countryMap[n] || { country: null, events: [], risk_history: [] }; }
+    if (path.indexOf("/api/report/") === 0) { var d = path.split("/").pop(); return DB.reportMap[d] || { report: null }; }
     if (path.indexOf("/api/events") === 0) { var fa = filt(path.split("?")[1] || ""); return { events: fa, count: fa.length }; }
     if (path.indexOf("/api/search") === 0) { var q = new URLSearchParams(path.split("?")[1] || "").get("q") || ""; var s = q.toLowerCase(); var fa = all().filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); return { events: fa, count: fa.length }; }
     return { error: "static-unknown-path", path: path };
   }
-  API.get = function (path) { return Promise.resolve(match(path)); };
+  // 关键修复：用 Promise 包裹，任何同步异常都转为 rejected，从而被页面 .catch 捕获，
+  // 避免原来“data.js 未加载时同步抛错、页面空白且无提示”的问题。
+  API.get = function (path) {
+    return new Promise(function (resolve, reject) {
+      try {
+        var r = match(path);
+        if (r && r.error) reject(new Error("静态数据缺失：" + (r.error || path)));
+        else resolve(r);
+      } catch (e) { reject(e); }
+    });
+  };
   API.post = function () { return Promise.resolve({ ok: false, static: true, msg: "静态归档版不支持该操作" }); };
+
+  // 若数据整体缺失，显示顶部提示条（各页面 .catch 还会显示具体错误）
+  if (!DB) {
+    document.addEventListener("DOMContentLoaded", function () {
+      var b = document.getElementById("dbError");
+      if (b) b.style.display = "block";
+    });
+  }
 })();
 </script>
 <script>

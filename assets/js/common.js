@@ -55,18 +55,14 @@ function eventCard(ev, opts) {
 function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
-    ["reports.html", "日报"], ["admin.html", "后台"],
+    ["countries.html", "国家"], ["reports.html", "日报"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
-  const countryLinks = COUNTRIES.map(c =>
-    `<a href="country.html?c=${encodeURIComponent(c)}">${esc(c)}</a>`).join("");
   const bar = $( "#topbar" );
   if (bar) {
     bar.innerHTML = `<div class="inner">
       <div class="brand"><b>中东地区社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
-      <nav class="nav">${links}
-        <details class="nav-drop"><summary>国家 ▾</summary><div class="nav-drop-menu">${countryLinks}</div></details>
-      </nav>
+      <nav class="nav">${links}</nav>
       <div class="meta" id="topmeta">伊拉克时间 <b id="cl">--:--</b><br><span class="muted">最后更新 --</span></div>
     </div>`;
   }

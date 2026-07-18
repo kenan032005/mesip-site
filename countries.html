@@ -3,26 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>国家安全动态 · 中东地区社会安全信息平台</title>
+<title>重点国家 · 中东地区社会安全信息平台</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1784397243">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
 <div class="container">
-  <p><a href="index.html">← 返回首页</a></p>
-  <div id="head"></div>
-  <div class="section">
-    <h2 id="evTitle">最新事件（近7天）</h2>
-    <div class="grid cards" id="events"></div>
+
+  <div class="hero" id="hero">
+    <h1>重点国家安全动态</h1>
+    <p class="muted">选择下方国家，查看该国近 7 天安全事件、风险变化与安全建议。</p>
   </div>
+
   <div class="section">
-    <h2>近7天风险变化</h2>
-    <div class="panel" id="hist"></div>
+    <h2>选择国家</h2>
+    <div class="matrix" id="countryGrid"><p class="muted">正在加载国家列表……</p></div>
   </div>
+
   <div class="section">
-    <h2>安全建议</h2>
-    <div class="panel" id="advice"></div>
+    <h2>按风险等级速览</h2>
+    <div class="panel" id="riskSummary"><p class="muted">正在加载……</p></div>
   </div>
+
 </div>
 <footer class="site"></footer>
 
@@ -99,27 +101,43 @@ window.__STATIC__ = true;
 })();
 </script>
 <script>
-renderHeader("country.html");
-const name = getQS("c") || "伊拉克";
-API.get("/api/country/" + encodeURIComponent(name)).then(d => {
-  if (!d.country) { $("#head").innerHTML = `<div class="empty">未找到该国家。</div>`; return; }
-  const co = d.country;
-  $("#head").innerHTML = `<div class="panel" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-      <div><h2 style="margin:0;border:none;padding:0;">${esc(co.name_zh)} <span class="muted small">${esc(co.name_en || "")}</span></h2>
-      ${riskBadge(co.current_risk)}</div>
-      <div><a class="btn ghost sm" href="iraq.html">伊拉克专题</a> <a class="btn ghost sm" href="reports.html">查看日报</a></div>
-    </div>
-    ${co.summary ? `<p class="small muted">${esc(co.summary)}</p>` : ""}`;
-  $("#events").innerHTML = d.events.length ? d.events.map(e => eventCard(e)).join("")
-    : `<div class="empty">近7天暂无相关事件。</div>`;
-  const h = d.risk_history || [];
-  $("#hist").innerHTML = h.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;">` +
-    h.map(x => `<div style="text-align:center;" title="${x.date} 最高风险 ${RISK_NAME[x.risk]}">
-        <div style="width:22px;height:${10 + x.risk * 18}px;background:${['#2e7d32','#2e7d32','#b8860b','#e65100','#c62828'][x.risk]};border-radius:4px;"></div>
-        <div class="small muted">${x.date.slice(5)}</div></div>`).join("") + `</div>`
-    : `<p class="muted">暂无风险变化数据。</p>`;
-  $("#advice").innerHTML = `<p class="small">持续关注${esc(co.name_zh)}安全动态；高风险时期减少前往敏感区域，保持与当地安保机构联系，落实应急通信与撤离预案。具体以本平台事件详情与日报为准。</p>`;
-}).catch(e => { $("#head").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+renderHeader("countries.html");
+
+API.get("/api/overview").then(d => {
+  const countries = (d.countries || []).slice().sort((a, b) => (a.priority || 99) - (b.priority || 99));
+  if (!countries.length) {
+    $("#countryGrid").innerHTML = `<div class="empty">暂无国家数据。</div>`;
+    return;
+  }
+  $("#countryGrid").innerHTML = countries.map(co => {
+    const r = co.current_risk || 1;
+    const name = co.name_zh;
+    return `<a class="mcell" href="country.html?c=${encodeURIComponent(name)}" style="text-decoration:none;color:inherit;">
+      <div class="cn">${esc(name)}</div>
+      <div class="en">${esc(co.name_en || "")}</div>
+      <div class="rv">${riskBadge(r)}</div></a>`;
+  }).join("");
+
+  // 风险等级速览
+  const order = [4, 3, 2, 1];
+  const names = { 4: "极高风险", 3: "高风险", 2: "中风险", 1: "低风险" };
+  const groups = { 4: [], 3: [], 2: [], 1: [] };
+  countries.forEach(co => {
+    const r = co.current_risk || 1;
+    (groups[r] = groups[r] || []).push(co.name_zh);
+  });
+  $("#riskSummary").innerHTML = order.map(r => {
+    const list = (groups[r] || []);
+    if (!list.length) return "";
+    return `<div style="margin-bottom:8px;">
+      <b>${riskBadge(r)}</b>
+      <span class="small muted">（${names[r]}，共 ${list.length} 国）</span>：
+      ${list.map(n => `<a class="tag" href="country.html?c=${encodeURIComponent(n)}">${esc(n)}</a>`).join(" ")}
+    </div>`;
+  }).join("");
+}).catch(e => {
+  $("#countryGrid").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`;
+});
 </script>
 </body>
 </html>
