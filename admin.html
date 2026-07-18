@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>后台管理 · 中东地区社会安全信息平台</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="topbar" class="topbar"></div>
+<div class="container">
+  <p><a href="index.html">← 返回首页</a></p>
+  <div class="hero"><h1>后台管理</h1>
+    <p>当前为 <b>静态归档版本</b>，不包含后台管理与每小时自动采集功能。后台管理、事件审核、信息源配置、自动任务调度等均需在运行完整后端服务的环境中使用。</p>
+  </div>
+  <div class="section">
+    <h2>如何获得完整功能？</h2>
+    <div class="panel">
+      <ul class="small">
+        <li>在本机运行 <code>python server.py</code> 启动完整服务（含后台：<code>/admin.html</code>）；</li>
+        <li>或将本平台部署到自有云服务器 / 使用内网穿透（如 Cloudflare Tunnel）暴露完整服务；</li>
+        <li>如需更新本静态归档内容，请在本机重新生成后再次发布。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<footer class="site"></footer>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/common.js"></script>
+<script>renderHeader("admin.html");</script>
+</body>
+</html>
