@@ -52,10 +52,53 @@ function eventCard(ev, opts) {
   </a>`;
 }
 
+// ---- 专业机构分析专栏 helpers ----
+const COPYRIGHT_STATUS = {
+  allow_full: ["允许全文", "#1a7f37"], authorized: ["已授权", "#1a7f37"],
+  open_license: ["开放许可", "#1a7f37"], public_domain: ["公共领域", "#1a7f37"],
+  summary_only: ["仅摘要", "#b8860b"], link_only: ["仅链接", "#b8860b"],
+  pending: ["待确认", "#a35a00"], forbidden: ["禁止转载", "#b71c1c"],
+  paid: ["付费", "#b71c1c"], taken_down: ["已下架", "#888"],
+};
+const WQ1_REL = {
+  direct: ["直接影响", "#b71c1c"], potential: ["潜在影响", "#e65100"],
+  indirect: ["间接影响", "#b8860b"], none: ["暂无明显影响", "#888"],
+};
+function copyBadge(st) {
+  const m = COPYRIGHT_STATUS[st] || ["未知", "#888"];
+  return `<span class="badge" style="background:${m[1]};color:#fff;">${esc(m[0])}</span>`;
+}
+function wq1Badge(lv) {
+  const m = WQ1_REL[lv] || ["-", "#888"];
+  return `<span class="badge" style="background:${m[1]};color:#fff;">WQ1：${esc(m[0])}</span>`;
+}
+function proTypeBadge(r) {
+  return r && r.content_type === "full"
+    ? `<span class="badge" style="background:#1a7f37;color:#fff;">全文翻译</span>`
+    : `<span class="badge" style="background:#2f6feb;color:#fff;">中文摘要</span>`;
+}
+function proCard(r) {
+  const url = `pro_report.html?id=${r.id}`;
+  return `<a class="panel ecard" href="${url}" style="text-decoration:none;color:inherit;">
+    <div class="ttl">${esc(r.title_zh || r.title_orig || "")}</div>
+    <div class="meta">
+      <b>${esc(r.org || "")}</b>
+      ${r.report_type ? `<span>${esc(r.report_type)}</span>` : ""}
+      ${proTypeBadge(r)}
+    </div>
+    ${r.core_conclusion ? `<div class="sum">${esc(r.core_conclusion).slice(0, 160)}</div>` : ""}
+    <div class="meta">
+      ${copyBadge(r.copyright_status)}
+      ${wq1Badge(r.wq1_relevance)}
+      <span class="muted">${fmtTime(r.pub_date)}</span>
+    </div>
+  </a>`;
+}
+
 function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
-    ["countries.html", "国家"], ["reports.html", "日报"], ["admin.html", "后台"],
+    ["countries.html", "国家"], ["pro_analysis.html", "专业机构分析"], ["reports.html", "日报"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
   const bar = $( "#topbar" );

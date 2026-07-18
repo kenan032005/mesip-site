@@ -3,26 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>国家安全动态 · 中东地区社会安全信息平台</title>
+<title>专业机构分析 · 中东地区社会安全信息平台</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1784403777">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
 <div class="container">
-  <p><a href="index.html">← 返回首页</a></p>
-  <div id="head"></div>
-  <div class="section">
-    <h2 id="evTitle">最新事件（近7天）</h2>
-    <div class="grid cards" id="events"></div>
+
+  <div class="hero">
+    <h1>专业机构分析 · Professional Risk Analysis</h1>
+    <p>持续筛选全球专业安全风险咨询、地缘政治情报、旅行安全、海事与能源风险机构发布的专业报告、风险预警与趋势研判。符合授权条件的报告完整中文翻译发布；否则发布中文深度摘要与原文链接。</p>
+    <div class="updatebar"><span class="muted">栏目定位：为什么发生、背后原因、未来走势、对伊拉克/巴士拉/WQ1 的影响与风险防范建议（非普通新闻）。</span></div>
   </div>
+
   <div class="section">
-    <h2>近7天风险变化</h2>
-    <div class="panel" id="hist"></div>
+    <h2>专业报告</h2>
+    <div class="panel">
+      <div class="filters">
+        <div><label>机构</label><select id="f-org"><option value="">全部</option></select></div>
+        <div><label>版权状态</label><select id="f-copy">
+          <option value="">全部</option>
+          <option value="allow_full">允许全文</option><option value="authorized">已授权</option>
+          <option value="open_license">开放许可</option><option value="public_domain">公共领域</option>
+          <option value="summary_only">仅摘要</option><option value="pending">待确认</option>
+          <option value="forbidden">禁止转载</option><option value="paid">付费</option>
+        </select></div>
+        <div><label>WQ1关联</label><select id="f-wq1">
+          <option value="">全部</option>
+          <option value="direct">直接影响</option><option value="potential">潜在影响</option>
+          <option value="indirect">间接影响</option><option value="none">暂无明显影响</option>
+        </select></div>
+        <div style="flex:1;min-width:200px"><label>关键词</label><input type="text" id="f-q" placeholder="标题/机构/结论关键词"></div>
+        <div><button id="btnSearch" class="sm">查询</button></div>
+        <div><button id="btnReset" class="sm ghost">重置</button></div>
+      </div>
+    </div>
+    <p class="small muted" id="count" style="margin:10px 2px;"></p>
+    <div class="grid cards" id="list"></div>
   </div>
+
   <div class="section">
-    <h2>安全建议</h2>
-    <div class="panel" id="advice"></div>
+    <h2>多机构观点对比</h2>
+    <div class="panel">
+      <p class="small muted">当同一风险主题下聚集 3 家及以上专业机构报告时，可生成结构化对比（共同判断、分歧、情景与对伊拉克/巴士拉/WQ1 的综合影响）。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="cmp-theme" placeholder="输入风险主题，如：红海航运 / 巴士拉社会动荡 / 霍尔木兹" style="flex:1;min-width:240px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;">
+        <button class="btn sm" id="btnCmp">生成对比</button>
+      </div>
+      <div id="cmpBox" style="margin-top:12px;"></div>
+    </div>
   </div>
+
 </div>
 <footer class="site"></footer>
 
@@ -128,27 +159,66 @@ window.__STATIC__ = true;
 })();
 </script>
 <script>
-renderHeader("country.html");
-const name = getQS("c") || "伊拉克";
-API.get("/api/country/" + encodeURIComponent(name)).then(d => {
-  if (!d.country) { $("#head").innerHTML = `<div class="empty">未找到该国家。</div>`; return; }
-  const co = d.country;
-  $("#head").innerHTML = `<div class="panel" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-      <div><h2 style="margin:0;border:none;padding:0;">${esc(co.name_zh)} <span class="muted small">${esc(co.name_en || "")}</span></h2>
-      ${riskBadge(co.current_risk)}</div>
-      <div><a class="btn ghost sm" href="iraq.html">伊拉克专题</a> <a class="btn ghost sm" href="reports.html">查看日报</a></div>
-    </div>
-    ${co.summary ? `<p class="small muted">${esc(co.summary)}</p>` : ""}`;
-  $("#events").innerHTML = d.events.length ? d.events.map(e => eventCard(e)).join("")
-    : `<div class="empty">近7天暂无相关事件。</div>`;
-  const h = d.risk_history || [];
-  $("#hist").innerHTML = h.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;">` +
-    h.map(x => `<div style="text-align:center;" title="${x.date} 最高风险 ${RISK_NAME[x.risk]}">
-        <div style="width:22px;height:${10 + x.risk * 18}px;background:${['#2e7d32','#2e7d32','#b8860b','#e65100','#c62828'][x.risk]};border-radius:4px;"></div>
-        <div class="small muted">${x.date.slice(5)}</div></div>`).join("") + `</div>`
-    : `<p class="muted">暂无风险变化数据。</p>`;
-  $("#advice").innerHTML = `<p class="small">持续关注${esc(co.name_zh)}安全动态；高风险时期减少前往敏感区域，保持与当地安保机构联系，落实应急通信与撤离预案。具体以本平台事件详情与日报为准。</p>`;
-}).catch(e => { $("#head").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+renderHeader("pro_analysis.html");
+
+function buildQuery() {
+  const p = new URLSearchParams();
+  if ($("#f-org").value) p.set("org", $("#f-org").value);
+  if ($("#f-copy").value) p.set("copyright_status", $("#f-copy").value);
+  if ($("#f-wq1").value) p.set("wq1_relevance", $("#f-wq1").value);
+  if ($("#f-q").value) p.set("q", $("#f-q").value);
+  return p.toString();
+}
+
+function load() {
+  API.get("/api/pro-reports?" + buildQuery()).then(d => {
+    window.__orgs = d.orgs || [];
+    $("#count").textContent = `共 ${d.count} 篇专业报告`;
+    if (!$("#f-org").dataset.filled && window.__orgs.length) {
+      const sel = $("#f-org");
+      window.__orgs.forEach(o => { const op = document.createElement("option"); op.value = o; op.textContent = o; sel.appendChild(op); });
+      $("#f-org").dataset.filled = "1";
+    }
+    $("#list").innerHTML = d.reports.length
+      ? d.reports.map(r => proCard(r)).join("")
+      : `<div class="empty">暂无符合条件的专业机构分析报告。可前往后台录入真实公开报告。</div>`;
+  }).catch(e => { $("#list").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+}
+
+$("#btnSearch").onclick = load;
+$("#f-q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+$("#btnReset").onclick = () => location.reload();
+
+$("#btnCmp").onclick = () => {
+  const t = $("#cmp-theme").value.trim();
+  if (!t) return toast("请输入风险主题");
+  API.get("/api/pro-compare/" + encodeURIComponent(t)).then(d => {
+    if (!d.comparable) {
+      $("#cmpBox").innerHTML = `<div class="empty">${esc(d.message || "同一主题下暂不足 3 家机构报告，无法生成对比。")}</div>`;
+      return;
+    }
+    const rows = d.reports.map(r => `<tr>
+      <td><b>${esc(r.org || "")}</b><br><span class="small muted">${esc(r.title_zh || r.title_orig || "")}</span></td>
+      <td>${wq1Badge(r.wq1_relevance)}</td>
+      <td class="small">${esc((r.core_conclusion || "").slice(0, 220))}</td>
+      <td class="small">${esc((r.key_risks || "").slice(0, 160))}</td>
+      <td class="small">${esc((r.org_forecast || "").slice(0, 160))}</td>
+      <td class="small">${r.orig_link ? `<a href="${esc(r.orig_link)}" target="_blank" rel="noopener">原文</a>` : ""}</td>
+    </tr>`).join("");
+    const wq = Object.entries(d.wq1_distribution || {}).map(([k,v]) => `${WQ1_REL[k] ? WQ1_REL[k][0] : k}:${v}`).join(" / ");
+    $("#cmpBox").innerHTML = `<div class="panel">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <b>多机构观点对比：</b><span class="muted small">${esc(d.theme || "")} · 共 ${d.count} 家机构</span>
+      </div>
+      <div class="small" style="margin:6px 0;">WQ1 关联分布：${esc(wq)}</div>
+      <table class="tbl"><thead><tr><th>机构 / 报告</th><th>WQ1</th><th>核心结论</th><th>关键风险</th><th>机构预测</th><th>原文</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <p class="small muted" style="margin-top:8px;">${esc(d.note || "")}</p>
+    </div>`;
+  }).catch(e => { $("#cmpBox").innerHTML = `<div class="empty">对比生成失败：${esc(e.message)}</div>`; });
+};
+
+load();
 </script>
 </body>
 </html>
