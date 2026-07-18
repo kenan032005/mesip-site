@@ -7,6 +7,9 @@ const CATEGORIES = [
   "涉及中国企业和公民", "其他安全信息",
 ];
 
+// 中东重点国家（与 config/countries.json 保持一致；静态版与实时版共用）
+const COUNTRIES = ["伊拉克","伊朗","以色列","巴勒斯坦","黎巴嫩","叙利亚","也门","沙特阿拉伯","科威特","阿联酋","卡塔尔","巴林","阿曼","约旦","土耳其","埃及"];
+
 function $(sel, root) { return (root || document).querySelector(sel); }
 function $all(sel, root) { return Array.from((root || document).querySelectorAll(sel)); }
 
@@ -52,14 +55,18 @@ function eventCard(ev, opts) {
 function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
-    ["reports.html", "日报"], ["country.html?c=伊拉克", "国家"], ["admin.html", "后台"],
+    ["reports.html", "日报"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
+  const countryLinks = COUNTRIES.map(c =>
+    `<a href="country.html?c=${encodeURIComponent(c)}">${esc(c)}</a>`).join("");
   const bar = $( "#topbar" );
   if (bar) {
     bar.innerHTML = `<div class="inner">
       <div class="brand"><b>中东地区社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
-      <nav class="nav">${links}</nav>
+      <nav class="nav">${links}
+        <details class="nav-drop"><summary>国家 ▾</summary><div class="nav-drop-menu">${countryLinks}</div></details>
+      </nav>
       <div class="meta" id="topmeta">伊拉克时间 <b id="cl">--:--</b><br><span class="muted">最后更新 --</span></div>
     </div>`;
   }
