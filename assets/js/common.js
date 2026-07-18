@@ -106,22 +106,31 @@ function renderHeader(active) {
     bar.innerHTML = `<div class="inner">
       <div class="brand"><b>中东地区社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
       <nav class="nav">${links}</nav>
-      <div class="meta" id="topmeta">伊拉克时间 <b id="cl">--:--</b><br><span class="muted">最后更新 --</span></div>
+      <div class="meta" id="topmeta">
+        🕐 北京时间 <b id="clBJ">--:--:--</b><br>
+        🌍 伊拉克时间 <b id="clIQ">--:--:--</b><br>
+        <span class="muted">更新（北京时间）：<b id="hdrUpdated">--</b></span>
+      </div>
     </div>`;
   }
   tickClock();
+  if (!window.__clockTimer__) {
+    window.__clockTimer__ = setInterval(tickClock, 1000);
+  }
 }
 
 function tickClock() {
-  const el = $("#cl");
-  if (!el) return;
-  const now = new Date(Date.now() + 3 * 3600 * 1000);
-  el.textContent = now.toISOString().slice(11, 16);
+  const bj = $("#clBJ");
+  const iq = $("#clIQ");
+  if (!bj && !iq) return;
+  const now = Date.now();
+  if (bj) bj.textContent = new Date(now + 8 * 3600 * 1000).toISOString().slice(11, 19);
+  if (iq) iq.textContent = new Date(now + 3 * 3600 * 1000).toISOString().slice(11, 19);
 }
 
 function setUpdated(s) {
-  const m = $("#topmeta .muted");
-  if (m && s) m.textContent = "最后更新 " + s;
+  const m = $("#hdrUpdated");
+  if (m && s) m.textContent = s;
 }
 
 function toast(msg) {
