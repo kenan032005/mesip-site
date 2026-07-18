@@ -76,8 +76,23 @@ a:hover { text-decoration: underline; }
 }
 .nav-drop-menu a:hover { background: var(--bg); text-decoration: none; color: var(--brand-2); }
 
-.topbar .meta { font-size: 12px; opacity: .85; text-align: right; white-space: nowrap; }
+.topbar .meta { font-size: 12px; opacity: .85; text-align: right; white-space: nowrap;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.5; }
 .topbar .meta b { color: #ffd479; }
+.topbar .meta #updLine { font-size: 11px; opacity: .9; }
+
+/* 顶部第二行：导航条（占满整行、按钮完全展开） */
+.topbar .top-row {
+  max-width: var(--maxw); margin: 0 auto; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px;
+}
+.navbar { background: rgba(0,0,0,.18); border-top: 1px solid rgba(255,255,255,.12); display: flex; }
+.navbar a {
+  flex: 1 1 0; text-align: center; color: #dfeaf3; padding: 11px 8px;
+  font-size: 14px; white-space: nowrap; border-radius: 0;
+}
+.navbar a:hover { background: rgba(255,255,255,.12); text-decoration: none; color: #fff; }
+.navbar a.active { background: rgba(255,255,255,.22); color: #fff; }
 
 /* ---------- layout ---------- */
 .container { max-width: var(--maxw); margin: 0 auto; padding: 18px 16px 60px; }
@@ -203,10 +218,11 @@ button:hover, .btn:hover { background: var(--brand-2); text-decoration: none; }
 footer.site { max-width: var(--maxw); margin: 0 auto; padding: 16px; color: var(--ink-soft); font-size: 12px; text-align: center; }
 
 @media (max-width: 720px) {
-  .topbar .inner { height: auto; flex-wrap: wrap; padding: 8px 12px; }
+  .topbar .top-row { flex-wrap: wrap; padding: 8px 12px; min-height: 0; }
   .brand b { font-size: 15px; }
-  .nav { order: 3; width: 100%; }
-  .topbar .meta { order: 2; }
+  .topbar .meta { order: 2; align-items: flex-end; }
+  .navbar { flex-wrap: wrap; }
+  .navbar a { flex: 1 1 33%; min-width: 84px; }
   .kv { grid-template-columns: 100px 1fr; }
   .meta { grid-template-columns: 1fr; gap: 0; }
   table.tbl { display: block; overflow-x: auto; white-space: nowrap; }

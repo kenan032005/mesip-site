@@ -36,6 +36,19 @@ function fmtTime(s) {
   return String(s).replace("T", " ").replace("Z", "").slice(0, 16);
 }
 
+// 所有对外展示时间统一换算为北京时间（UTC+8）。
+// 底层存储的 publish_time / ts 等均为 UTC；纯日期（如 2026-07-18）不转换，原样返回。
+function fmtTimeBJ(s) {
+  if (!s) return "";
+  s = String(s).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // 纯日期不转换
+  var m = s.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return String(s).replace("T", " ").replace("Z", "").slice(0, 16); // 兜底
+  var Y = +m[1], Mo = +m[2] - 1, D = +m[3], h = +m[4], mi = +m[5], se = +(m[6] || 0);
+  var ms = Date.UTC(Y, Mo, D, h, mi, se) + 8 * 3600 * 1000; // 视为 UTC，加 8 小时
+  return new Date(ms).toISOString().slice(0, 19).replace("T", " "); // 北京时间墙钟
+}
+
 function eventCard(ev, opts) {
   opts = opts || {};
   const url = `event.html?id=${ev.id}`;
@@ -48,7 +61,7 @@ function eventCard(ev, opts) {
       <span>${esc(ev.category || "")}</span>
     </div>
     ${ev.summary ? `<div class="sum">${esc(ev.summary).slice(0, 140)}</div>` : ""}
-    <div class="meta">${flagTags(ev)} <span class="muted">${fmtTime(ev.publish_time)}</span></div>
+    <div class="meta">${flagTags(ev)} <span class="muted">${fmtTimeBJ(ev.publish_time)}</span></div>
   </a>`;
 }
 
@@ -90,7 +103,7 @@ function proCard(r) {
     <div class="meta">
       ${copyBadge(r.copyright_status)}
       ${wq1Badge(r.wq1_relevance)}
-      <span class="muted">${fmtTime(r.pub_date)}</span>
+      <span class="muted">${fmtTimeBJ(r.pub_date)}</span>
     </div>
   </a>`;
 }
@@ -103,15 +116,14 @@ function renderHeader(active) {
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
   const bar = $( "#topbar" );
   if (bar) {
-    bar.innerHTML = `<div class="inner">
+    bar.innerHTML = `<div class="top-row">
       <div class="brand"><b>中东地区社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
-      <nav class="nav">${links}</nav>
       <div class="meta" id="topmeta">
-        🕐 北京时间 <b id="clBJ">--:--:--</b><br>
-        🌍 伊拉克时间 <b id="clIQ">--:--:--</b><br>
-        <span class="muted">更新（北京时间）：<b id="hdrUpdated">--</b></span>
+        🕐 北京时间 <b id="clBJ">--:--:--</b>
+        <span class="muted" id="updLine">更新（北京时间）：<b id="hdrUpdated">--</b></span>
       </div>
-    </div>`;
+    </div>
+    <nav class="navbar">${links}</nav>`;
   }
   tickClock();
   if (!window.__clockTimer__) {
@@ -121,11 +133,8 @@ function renderHeader(active) {
 
 function tickClock() {
   const bj = $("#clBJ");
-  const iq = $("#clIQ");
-  if (!bj && !iq) return;
-  const now = Date.now();
-  if (bj) bj.textContent = new Date(now + 8 * 3600 * 1000).toISOString().slice(11, 19);
-  if (iq) iq.textContent = new Date(now + 3 * 3600 * 1000).toISOString().slice(11, 19);
+  if (!bj) return;
+  bj.textContent = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(11, 19);
 }
 
 function setUpdated(s) {
