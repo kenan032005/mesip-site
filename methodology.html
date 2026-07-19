@@ -3,35 +3,369 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>最新安全事件 · 中东地区社会安全信息平台</title>
+<title>风险评级方法 · 中东地区社会安全信息平台</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1784487084">
+<style>
+  .method { max-width: 900px; }
+  .method h2 { font-size: 1.4rem; margin: 2em 0 .6em; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+  .method h2:first-of-type { margin-top: 0; }
+  .method h3 { font-size: 1.1rem; margin: 1.4em 0 .4em; color: var(--text); }
+  .method table { width: 100%; border-collapse: collapse; margin: .8em 0 1.2em; font-size: .93rem; }
+  .method th, .method td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  .method th { background: var(--bg2, #f5f5f5); font-weight: 600; white-space: nowrap; }
+  .method .note { padding: 10px 14px; border-left: 4px solid #2f6feb; background: #f0f6ff; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .warn  { padding: 10px 14px; border-left: 4px solid #e65100; background: #fff3e0; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .danger { padding: 10px 14px; border-left: 4px solid #b71c1c; background: #fff0f0; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .dim-label { display: inline-block; min-width: 160px; font-weight: 600; }
+  .method .formula { font-family: monospace; background: var(--bg2, #f5f5f5); padding: 3px 8px; border-radius: 3px; }
+  .method .score-bar { display: inline-block; height: 10px; border-radius: 5px; vertical-align: middle; margin-right: 6px; }
+  .method .toc { columns: 2; margin: 1em 0; padding: 0 0 0 1.2em; }
+  .method .toc li { margin-bottom: 4px; }
+  @media (max-width: 600px) { .method .toc { columns: 1; } }
+</style>
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
-<div class="container">
+<div class="container method">
 
-  <div class="section">
-    <h2>最新安全事件</h2>
-    <div class="panel">
-      <div class="filters">
-        <div><label>国家</label><select id="f-country"><option value="">全部</option></select></div>
-        <div><label>风险等级</label>
-          <select id="f-risk"><option value="">全部</option><option value="4">极高风险</option><option value="3">高风险</option><option value="2">中风险</option><option value="1">低风险</option></select>
-        </div>
-        <div><label>事件类别</label>
-          <select id="f-cat"><option value="">全部</option></select>
-        </div>
-        <div><label>起始日期</label><input type="date" id="f-from"></div>
-        <div><label>结束日期</label><input type="date" id="f-to"></div>
-        <div><label>仅涉华</label><input type="checkbox" id="f-china" style="width:auto;margin-top:8px;"></div>
-        <div style="flex:1;min-width:200px"><label>关键词搜索</label><input type="text" id="f-q" placeholder="标题/摘要关键词"></div>
-        <div><button id="btnSearch" class="sm">查询</button></div>
-        <div><button id="btnReset" class="sm ghost">重置</button></div>
-      </div>
-    </div>
-    <p class="small muted" id="count" style="margin:10px 2px;"></p>
-    <div class="grid cards" id="list"></div>
+  <div class="hero" id="hero">
+    <h1>风险评级方法</h1>
+    <p class="muted">本页面公开展示中东地区社会安全信息平台（MESIP）的风险评级体系。所有评级基于确定性规则，不调用大语言模型（LLM），不编造、不夸大。本体系为"系统初评"；允许人工复核覆盖并记录审计日志。</p>
+    <p class="small muted">最后一次评级标准更新时间：<b>2026-07-19</b></p>
   </div>
+
+  <!-- 目录 -->
+  <div class="panel">
+    <h3>目录</h3>
+    <ol class="toc">
+      <li><a href="#content-type">内容类型分类（A–G）</a></li>
+      <li><a href="#admission">安全事件准入标准</a></li>
+      <li><a href="#event" id="toc-event">事件风险评分方法（5 维 / 100 分）</a></li>
+      <li><a href="#cred">信息可信度标准（A–D）</a></li>
+      <li><a href="#wq1">WQ1 关联等级</a></li>
+      <li><a href="#country" id="toc-country">国家风险评分方法（7 维 / 100 分）</a></li>
+      <li><a href="#advice">风险等级对应的管理建议</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. 内容类型分类 -->
+  <h2 id="content-type">一、内容类型分类（A–G）</h2>
+  <p>平台对每条信息首先做<strong>内容类型判定</strong>，而非默认赋予安全事件风险。信息类型不同，后续评分、展示和统计的处理方式也不同。</p>
+
+  <table>
+    <thead><tr><th>类型</th><th>名称</th><th>定义</th><th>是否赋予事件风险分</th><th>是否计入安全统计</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>A</b></td>
+        <td>已发生安全事件</td>
+        <td>已经发生的、有可验证事实的安全事件（袭击、爆炸、骚乱、事故等）</td>
+        <td>是</td><td>是</td>
+      </tr>
+      <tr>
+        <td><b>B</b></td>
+        <td>正在发展事件</td>
+        <td>已发生但仍在演变中，局势尚未稳定的安全事件</td>
+        <td>是</td><td>是</td>
+      </tr>
+      <tr>
+        <td><b>C</b></td>
+        <td>安全预警</td>
+        <td>尚未发生但有明确预警信号（政府预警、使馆通知、武装威胁、演习通告、气象预警等）</td>
+        <td>是</td><td>是（仅影响近期动态和未来展望）</td>
+      </tr>
+      <tr>
+        <td><b>D</b></td>
+        <td>政策和运营动态</td>
+        <td>外交访问、协议签署、法规改革、油气招标、选举信息、经济动态等</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>E</b></td>
+        <td>专业分析</td>
+        <td>智库报告、咨询公司研判、学术研究、深度分析等</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>F</b></td>
+        <td>观点和评论</td>
+        <td>专栏文章、社论、媒体评论、分析人士观点</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>G</b></td>
+        <td>背景和历史资料</td>
+        <td>历史回顾、司法案件、档案文献、纪念活动等与当前安全形势无关的内容</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>判定优先级：</b>G（历史背景）→ F（观点评论）→ E（专业分析）→ D（政策运营）→ C（安全预警）→ A/B（安全事件）。若一条信息同时包含多类特征，取优先级更靠前者。分类由关键字匹配和分类标签组合判定。
+  </div>
+
+  <!-- 2. 安全事件准入标准 -->
+  <h2 id="admission">二、安全事件准入标准</h2>
+  <p>平台收集的中东地区各类信息并非全部视为"安全事件"。只有满足以下任一条件的信息，才被赋予事件风险评分（内容类型 A / B / C）：</p>
+
+  <table>
+    <thead><tr><th>准入条件</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. 已发生人员伤亡</b></td><td>有死亡或受伤报告</td></tr>
+      <tr><td><b>2. 涉及武装冲突或军事行动</b></td><td>交火、空袭、导弹攻击、军事部署等</td></tr>
+      <tr><td><b>3. 涉及恐怖主义和爆炸</b></td><td>炸弹袭击、自杀式袭击、IED 等</td></tr>
+      <tr><td><b>4. 重大社会治安事件</b></td><td>大规模绑架、劫持、恶性犯罪</td></tr>
+      <tr><td><b>5. 示威、罢工和社会动荡</b></td><td>大规模游行、骚乱、罢工导致秩序混乱</td></tr>
+      <tr><td><b>6. 交通、航空和出行中断</b></td><td>机场关闭、领空限制、道路封锁、港口停运</td></tr>
+      <tr><td><b>7. 能源和重要基础设施安全</b></td><td>油气设施遭袭或被迫停产、电网大规模中断</td></tr>
+      <tr><td><b>8. 自然灾害和公共卫生事件</b></td><td>地震、洪水、疫情等影响安全形势</td></tr>
+      <tr><td><b>9. 明确的安全预警</b></td><td>政府/使馆/国际组织发布的官方安全预警</td></tr>
+      <tr><td><b>10. 涉及中国公民或中资企业</b></td><td>任何涉华安全信息均纳入评分</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>不满足任何条件的信息</b>（如外交访问、经济政策、历史回顾）归入 D/E/F/G 类，标记为"信息类（0 级）"，不进入安全风险统计。
+  </div>
+
+  <!-- 3. 事件风险评分方法 -->
+  <h2 id="event">三、事件风险评分方法（5 维 / 100 分）</h2>
+
+  <p>对类型 A/B/C 的安全事件，采用<strong>5 维评分体系</strong>，每维满分如下，合计 <b>100 分</b>：</p>
+
+  <table>
+    <thead><tr><th>维度</th><th>满分</th><th>评分逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>人员及财产后果</b></td>
+        <td>30</td>
+        <td>死亡（15–30分）、受伤（10 分）、无伤亡但涉安全（5 分）。涉华加成至 ≥15，社会影响加成至 ≥10。</td>
+      </tr>
+      <tr>
+        <td><b>事件范围和影响规模</b></td>
+        <td>15</td>
+        <td>跨境/全国 15；跨省/多城市 10；单城市 5。武装冲突/恐袭、示威/能源类分类加重。</td>
+      </tr>
+      <tr>
+        <td><b>持续性和升级可能</b></td>
+        <td>20</td>
+        <td>正在发展中且有外溢/升级信号 20；正在发展中 15；预警 10；已稳定/结束 5。</td>
+      </tr>
+      <tr>
+        <td><b>交通、能源和运营中断</b></td>
+        <td>20</td>
+        <td>机场关闭 +15；能源设施中断 +15；道路封锁 +10；全国/大范围全面中断 20。</td>
+      </tr>
+      <tr>
+        <td><b>行为主体意图和能力</b></td>
+        <td>15</td>
+        <td>国家军队/导弹/无人机/恐怖组织/ISIS 15；恐袭/武装冲突 10；社会治安/示威 5；自然灾害 0。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>事件风险等级划分</h3>
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>分数区间</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><b>0</b></td><td>信息类</td><td>—</td><td>D/E/F/G 类内容，不适用安全事件风险评分</td></tr>
+      <tr><td><b>1</b></td><td>低风险</td><td>1–24</td><td>局部、短暂、影响有限的事件</td></tr>
+      <tr><td><b>2</b></td><td>中风险</td><td>25–49</td><td>有一定影响范围或持续时间的事件</td></tr>
+      <tr><td><b>3</b></td><td>高风险</td><td>50–74</td><td>对人员安全或运营产生重大威胁</td></tr>
+      <tr><td><b>4</b></td><td>极高风险</td><td>75–100</td><td>灾难性或大规模持续性安全事件</td></tr>
+    </tbody>
+  </table>
+
+  <h3>强制升级规则</h3>
+  <p>以下情形会<strong>无视原始评分直接提升等级</strong>：</p>
+
+  <div class="warn">
+    <b>强制≥高风险（≥50 分）</b>
+    <ul style="margin:.4em 0 0;">
+      <li>涉及中国公民或中资企业</li>
+      <li>机场、港口、能源设施受影响</li>
+      <li>巴士拉机场/港口、油田、油气设施受影响</li>
+      <li>出现多名死亡</li>
+      <li>发布紧急避险、撤离通知或主要区域封锁</li>
+    </ul>
+  </div>
+
+  <div class="danger">
+    <b>强制≥极高风险（≥75 分）</b>
+    <ul style="margin:.4em 0 0;">
+      <li>机场或能源设施受影响 <b>且</b> 有人死亡</li>
+      <li>WQ1 或中资项目遭袭击或直接重大影响</li>
+      <li>全国领空或大范围领空限制/关闭</li>
+      <li>城市连续遭受袭击导致大规模人员伤亡</li>
+      <li>多个机场/港口/能源设施同时停止运行</li>
+    </ul>
+  </div>
+
+  <p>每条安全事件在详情页显示完整的 5 维分项、总分和评级理由，确保评级可解释、可复核。</p>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 4. 信息可信度标准 -->
+  <h2 id="cred">四、信息可信度标准（A–D）</h2>
+
+  <p>信息可信度独立于风险等级，评估的是<strong>信息来源的可靠性</strong>，而非事件本身的严重程度。可信度基于：来源权威性、独立来源数量、是否来自社媒。</p>
+
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>判定逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>A</b></td>
+        <td>已确认</td>
+        <td>至少 2 个独立来源 <b>且</b> 至少其一为官方/权威（政府、国防部、通讯社、联合国等）</td>
+      </tr>
+      <tr>
+        <td><b>B</b></td>
+        <td>较高可信度</td>
+        <td>至少 2 个独立来源，或单一官方/权威来源</td>
+      </tr>
+      <tr>
+        <td><b>C</b></td>
+        <td>尚待进一步核实</td>
+        <td>单一媒体来源，非社媒单信源</td>
+      </tr>
+      <tr>
+        <td><b>D</b></td>
+        <td>未经证实</td>
+        <td>来源于社媒且无第二来源佐证</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>标记为"未经证实（D）"或内容类型为 E/F/G 的事件，系统自动标记 <code>needs_review=1</code>，提示人工复核。</p>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 5. WQ1 关联等级 -->
+  <h2 id="wq1">五、WQ1 关联等级</h2>
+
+  <p>WQ1 关联评估事件对巴士拉油气项目运营的<strong>潜在影响程度</strong>，独立于事件风险等级。</p>
+
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>判定逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>直接影响</b></td>
+        <td style="color:#b71c1c;font-weight:600;">Direct</td>
+        <td>明确涉及中国公民或中资企业；WQ1/Basra 项目所在地直接发生安全事件</td>
+      </tr>
+      <tr>
+        <td><b>潜在影响</b></td>
+        <td style="color:#e65100;font-weight:600;">Potential</td>
+        <td>事件涉及巴士拉/油田地区、中资/中石油/中石化等关键词；或影响能源/机场设施</td>
+      </tr>
+      <tr>
+        <td><b>间接影响</b></td>
+        <td style="color:#b8860b;font-weight:600;">Indirect</td>
+        <td>事件产生涉华或涉外影响（impact_china / impact_foreign）；或涉及能源/交通类别</td>
+      </tr>
+      <tr>
+        <td><b>暂无明显影响</b></td>
+        <td style="color:#888;">None</td>
+        <td>与 WQ1 或中资项目无明显关联</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 6. 国家风险评分方法 -->
+  <h2 id="country">六、国家风险评分方法（7 维 / 100 分）</h2>
+
+  <p>国家风险由 <strong>7 个安全维度 × 时间加权</strong>计算得出（满分 100）。每个维度得分 = 结构性基础（40%）+ 近期动态（45%）+ 未来 72h 展望（15%）。</p>
+
+  <h3>7 维权重分配</h3>
+  <table>
+    <thead><tr><th>维度</th><th>权重</th><th>评估要素</th></tr></thead>
+    <tbody>
+      <tr><td><b>d1 · 武装冲突及跨境军事风险</b></td><td>25%</td><td>国家间冲突、内战、空袭、军事部署、导弹攻击等</td></tr>
+      <tr><td><b>d2 · 恐怖主义及非国家武装风险</b></td><td>15%</td><td>恐怖组织活动能力、爆炸袭击、武装组织控制区</td></tr>
+      <tr><td><b>d3 · 政治稳定和社会动荡</b></td><td>15%</td><td>示威、罢工、骚乱、政府更迭、政治危机</td></tr>
+      <tr><td><b>d4 · 犯罪、绑架及外国人员风险</b></td><td>10%</td><td>绑架、抢劫、对外国人/外企的针对性犯罪</td></tr>
+      <tr><td><b>d5 · 交通能源及关键基建连续性</b></td><td>15%</td><td>机场/港口/道路可用性、油气设施安全、电力供应</td></tr>
+      <tr><td><b>d6 · 政府治理医疗应急能力</b></td><td>10%</td><td>医疗资源、应急响应、政府稳定性、灾害应对</td></tr>
+      <tr><td><b>d7 · 外企中资油气项目暴露度</b></td><td>10%</td><td>中资项目数量与分布、WQ1 位置、油气暴露面</td></tr>
+    </tbody>
+  </table>
+
+  <h3>时间权重</h3>
+  <p>每个维度的最终得分为三种时间分量的加权和：</p>
+  <div class="note">
+    <b>维度最终得分 = 结构性基础 × 0.40 + 近期动态 × 0.45 + 未来 72h 展望 × 0.15</b>
+    <ul style="margin:.4em 0 0;">
+      <li><strong>结构性基础</strong>（40%）：基于国家/地区的长期结构性风险因素，每月复核。伊拉克 5 个地区的基线各有差异。</li>
+      <li><strong>近期动态</strong>（45%）：过去 30 天内的 A/B/C 类事件，按发生时间衰减（≤3 天权重 1.0；≤7 天 0.6；≤30 天 0.3；>30 天 0.1）。</li>
+      <li><strong>未来 72h 展望</strong>（15%）：未来 72 小时内可能影响安全形势的 C 类预警。</li>
+    </ul>
+  </div>
+
+  <h3>国家风险等级</h3>
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>总分区间</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>低风险</td><td>1–24</td></tr>
+      <tr><td>2</td><td>中风险</td><td>25–49</td></tr>
+      <tr><td>3</td><td>高风险</td><td>50–74</td></tr>
+      <tr><td>4</td><td>极高风险</td><td>75–100</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>国家风险强制升级：</b>若近 30 天内出现至少 2 条极高风险事件，或出现全国领空关闭/政府失控/国家机构瘫痪等极端情况，总分强制 ≥75（极高风险）。若出现 1 条极高风险事件，总分强制 ≥50（高风险）。
+  </div>
+
+  <h3>降级规则（谨慎降级）</h3>
+  <p>国家风险降级比升级更谨慎：只有在连续 7 天无新增高风险事件、且趋势箭头持续下降时，才能自然降级。趋势箭头（↑ / → / ↓）仅反映 7 天内的分数变化方向，不等于风险等级的升降。</p>
+
+  <h3>伊拉克地区拆分</h3>
+  <p>伊拉克单独计算以下 5 个区间的国家风险：</p>
+  <ul>
+    <li><b>全国</b>：统合全国所有事件</li>
+    <li><b>巴格达</b>：首都及周边</li>
+    <li><b>巴士拉</b>：WQ1 油气项目核心区</li>
+    <li><b>北部库区</b>：埃尔比勒、苏莱曼尼亚、杜胡克</li>
+    <li><b>西部边境</b>：安巴尔、尼尼微等与叙利亚接壤地区</li>
+  </ul>
+  <p>全国性事件对地区以 <span class="formula">×0.4 外溢权重</span>计入；地区本地事件以 <span class="formula">×1.0 全权重</span>计入，保证地区风险不低于、也不盲目等于全国。</p>
+  <p><a href="#toc-country">↑ 返回目录</a></p>
+
+  <!-- 7. 风险等级对应的管理建议 -->
+  <h2 id="advice">七、风险等级对应的管理建议</h2>
+
+  <table>
+    <thead><tr><th>风险等级</th><th>管理建议</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>0 · 信息类</b></td>
+        <td>常规关注，无需调整正常计划。</td>
+      </tr>
+      <tr>
+        <td><b>1 · 低风险</b><br><span class="small muted">事件 1–24 分 / 国家 1–24 分</span></td>
+        <td>常规关注；无需调整正常计划；必要时提醒相关人员。</td>
+      </tr>
+      <tr>
+        <td><b>2 · 中风险</b><br><span class="small muted">事件 25–49 分 / 国家 25–49 分</span></td>
+        <td>加强信息监测；调整部分出行安排；避开事件区域；通知相关部门和承包商；准备替代路线。</td>
+      </tr>
+      <tr>
+        <td><b>3 · 高风险</b><br><span class="small muted">事件 50–74 分 / 国家 50–74 分</span></td>
+        <td>启动强化安全监测；限制非必要出行；重新评估人员轮换和车辆路线；检查应急联系人和通信；做好就地避险或撤离准备；由管理层每日复核风险。</td>
+      </tr>
+      <tr>
+        <td><b>4 · 极高风险</b><br><span class="small muted">事件 75–100 分 / 国家 75–100 分</span></td>
+        <td>启动危机管理机制；暂停非必要活动；停止非必要人员出行；实施就地避险、人员集中或撤离；每小时更新事件状态；立即上报管理层。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>免责声明：</b>本平台所有评级均为基于公开信息的"系统初评"，不作为决策唯一依据。所有风险评级均保留详细的分项得分和评分理由，支持人工复核和覆盖。实际操作中请结合一线情报和专业判断。
+  </div>
+
+  <p style="margin-top:2em; padding-top:1em; border-top:1px solid var(--border);" class="small muted">
+    中东地区社会安全信息平台（MESIP）· 风险评级体系 v2.0 · 最后更新：2026-07-19
+  </p>
 
 </div>
 <footer class="site"></footer>
@@ -159,47 +493,7 @@ window.__STATIC__ = true;
 })();
 </script>
 <script>
-renderHeader("events.html");
-
-function buildQuery() {
-  const p = new URLSearchParams();
-  const c = $("#f-country").value, r = $("#f-risk").value, cat = $("#f-cat").value;
-  const f = $("#f-from").value, t = $("#f-to").value, q = $("#f-q").value;
-  if (c) p.set("country", c);
-  if (r) p.set("risk", r);
-  if (cat) p.set("category", cat);
-  if (f) p.set("from", f + " 00:00:00");
-  if (t) p.set("to", t + " 23:59:59");
-  if ($("#f-china").checked) p.set("china", "1");
-  if (q) p.set("q", q);
-  return p.toString();
-}
-
-function load() {
-  const q = buildQuery();
-  API.get("/api/events?" + q).then(d => {
-    $("#count").textContent = `共 ${d.count} 条事件`;
-    $("#list").innerHTML = d.events.length
-      ? d.events.map(e => eventCard(e)).join("")
-      : `<div class="empty">没有符合条件的事件。</div>`;
-  }).catch(e => { $("#list").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
-}
-
-API.get("/api/overview").then(d => {
-  const sel = $("#f-country");
-  d.countries.forEach(c => { const o = document.createElement("option"); o.value = c.name_zh; o.textContent = c.name_zh; sel.appendChild(o); });
-});
-
-const catSel = $("#f-cat");
-CATEGORIES.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c; catSel.appendChild(o); });
-
-$("#btnSearch").onclick = load;
-$("#f-q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
-$("#btnReset").onclick = () => { location.reload(); };
-
-// 自动刷新：每 5 分钟重新拉取一次，确保显示最新新闻（后端每小时自动采集）
-setInterval(() => { load(); }, 5 * 60 * 1000);
-load();
+renderHeader("methodology.html");
 </script>
 </body>
 </html>

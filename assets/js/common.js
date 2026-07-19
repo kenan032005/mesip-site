@@ -164,14 +164,15 @@ function _parseDrivers(row) {
   if (typeof d === "string") { try { d = JSON.parse(d); } catch (e) { d = []; } }
   return Array.isArray(d) ? d : [];
 }
-function countryRiskCard(row) {
+function countryRiskCard(row, countryName) {
   const lvl = Number(row.level) || 1;
   const total = row.total != null ? row.total : 0;
   const drivers = _parseDrivers(row);
   const regional = (row.scope && row.scope !== "全国");
+  const title = regional ? esc(row.scope) : esc(countryName || "全国");
   return `<div class="cr-card panel">
     <div class="cr-head">
-      <b>${regional ? esc(row.scope) : "全国"}</b>
+      <b>${title}</b>
       ${riskBadge(lvl)} <b>评分 ${total}/100</b>
       ${trendBadge(row.trend)}
       <span class="muted small">Δ昨日 ${row.delta_1d != null ? row.delta_1d : 0} · Δ7日 ${row.delta_7d != null ? row.delta_7d : 0}</span>
@@ -185,10 +186,11 @@ function countryRiskSection(riskRows, opts) {
   if (!riskRows || !riskRows.length) return `<div class="empty">暂未计算国家风险（将在下次采集后自动生成）。</div>`;
   const national = riskRows.filter(r => r.scope === "全国");
   const regions = riskRows.filter(r => r.scope && r.scope !== "全国");
-  let h = national.map(countryRiskCard).join("");
+  const countryName = opts.countryName || "";
+  let h = national.map(r => countryRiskCard(r, countryName)).join("");
   if (regions.length && !opts.nationalOnly) {
     h += `<h3 class="cr-sub">地区差异（巴士拉 / 巴格达 / 北部库区 / 西部边境）</h3>` +
-      `<div class="grid cards">${regions.map(countryRiskCard).join("")}</div>`;
+      `<div class="grid cards">${regions.map(r => countryRiskCard(r, countryName)).join("")}</div>`;
   }
   return h;
 }
