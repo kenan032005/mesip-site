@@ -81,9 +81,10 @@ function eventCard(ev, opts) {
   const isInfo = (ct === "D" || ct === "E" || ct === "F" || ct === "G");
   const risk = Number(ev.risk_level) || 0;
   const score = (ev.risk_score !== null && ev.risk_score !== undefined && ev.risk_score !== "") ? ev.risk_score : "";
+  // 注意：不能用 <a> 标签，因为整个卡片已经是 <a>，嵌套 <a> 是无效 HTML 会导致排版错乱
   const riskTag = isInfo
     ? `<span class="badge risk-0" title="信息类内容，不赋予安全事件风险等级">信息类</span>`
-    : `<a class="badge risk-${risk}" href="methodology.html#event" title="查看风险评级方法" style="text-decoration:none;">${RISK_NAME[risk] || "低风险"}${score !== "" ? (" · " + score) : ""}</a>`;
+    : `<span class="badge risk-${risk}" title="查看风险评级方法" onclick="event.preventDefault();event.stopPropagation();window.open('methodology.html#event','_blank')">${RISK_NAME[risk] || "低风险"}${score !== "" ? (" · " + score) : ""}</span>`;
   const srcCount = (ev.source_count ? ev.source_count : (ev.updates ? (Array.isArray(ev.updates) ? ev.updates.length : 1) : 1));
   return `<a class="panel ecard" href="${url}" style="text-decoration:none;color:inherit;display:block;">
     <div class="ttl">${esc(ev.title_zh || ev.title_original)}</div>

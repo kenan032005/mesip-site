@@ -137,10 +137,12 @@ a:hover { text-decoration: underline; }
 .risk-4 { background: var(--risk-4-bg); color: var(--risk-4); }
 .risk-0 { background: #eceff1; color: #607d8b; }
 /* 可点击的风险标签：跳转评级方法页 */
-a.badge.risk-1, a.badge.risk-2, a.badge.risk-3, a.badge.risk-4 {
+a.badge.risk-1, a.badge.risk-2, a.badge.risk-3, a.badge.risk-4,
+span.badge.risk-1, span.badge.risk-2, span.badge.risk-3, span.badge.risk-4 {
   text-decoration: none; cursor: pointer; border: 1px solid transparent;
 }
-a.badge.risk-1:hover, a.badge.risk-2:hover, a.badge.risk-3:hover, a.badge.risk-4:hover {
+a.badge.risk-1:hover, a.badge.risk-2:hover, a.badge.risk-3:hover, a.badge.risk-4:hover,
+span.badge.risk-1:hover, span.badge.risk-2:hover, span.badge.risk-3:hover, span.badge.risk-4:hover {
   filter: brightness(0.95); outline: 2px solid var(--brand-2); outline-offset: 1px;
 }
 .tag {
