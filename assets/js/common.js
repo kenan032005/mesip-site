@@ -32,8 +32,7 @@ function flagTags(ev) {
 }
 
 function fmtTime(s) {
-  if (!s) return "";
-  return String(s).replace("T", " ").replace("Z", "").slice(0, 16);
+  return fmtTimeBJ(s);
 }
 
 // 所有对外展示时间统一换算为北京时间（UTC+8）。
@@ -100,14 +99,15 @@ function eventCard(ev, opts) {
   </a>`;
 }
 
-/** 卡片内时间格式化：只显示月-日 时:分 */
+/** 卡片内时间格式化：先转北京时间，再只显示月-日 时:分 */
 function _cardTime(s) {
   if (!s) return "";
-  s = String(s).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(5); // "07-19"
-  var m = s.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/);
-  if (!m) return "";
-  return m[2] + "-" + m[3] + " " + m[4] + ":" + m[5];   // "07-19 14:30"
+  const bj = fmtTimeBJ(s);
+  if (!bj) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(bj)) return bj.slice(5); // "07-19"
+  var m = bj.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/);
+  if (m) return m[2] + "-" + m[3] + " " + m[4] + ":" + m[5]; // "07-19 14:30"
+  return "";
 }
 
 /**
