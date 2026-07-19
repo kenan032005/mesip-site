@@ -80,29 +80,52 @@ function eventCard(ev, opts) {
   const ct = ev.content_type || "A";
   const isInfo = (ct === "D" || ct === "E" || ct === "F" || ct === "G");
   const risk = Number(ev.risk_level) || 0;
-  const score = (ev.risk_score !== null && ev.risk_score !== undefined && ev.risk_score !== "") ? ev.risk_score : "";
-  // 注意：不能用 <a> 标签，因为整个卡片已经是 <a>，嵌套 <a> 是无效 HTML 会导致排版错乱
-  const riskTag = isInfo
-    ? `<span class="badge risk-0" title="信息类内容，不赋予安全事件风险等级">信息类</span>`
-    : `<span class="badge risk-${risk}" title="查看风险评级方法" onclick="event.preventDefault();event.stopPropagation();window.open('methodology.html#event','_blank')">${RISK_NAME[risk] || "低风险"}${score !== "" ? (" · " + score) : ""}</span>`;
-  const srcCount = (ev.source_count ? ev.source_count : (ev.updates ? (Array.isArray(ev.updates) ? ev.updates.length : 1) : 1));
-  return `<a class="panel ecard" href="${url}" style="text-decoration:none;color:inherit;display:block;">
-    <div class="ttl">${esc(ev.title_zh || ev.title_original)}</div>
-    <div class="meta">
-      ${contentTypeBadge(ct)}
-      ${riskTag}
-      ${ev.country ? `<span>${esc(ev.country)}</span>` : ""}
-      ${ev.city ? `<span>${esc(ev.city)}</span>` : ""}
-      ${statusBadge(ev.event_status)}
-    </div>
-    ${ev.summary ? `<div class="sum">${esc(ev.summary).slice(0, 140)}</div>` : ""}
-    <div class="meta">
-      ${credBadge(ev.credibility_grade)}
-      ${wq1Badge(ev.wq1_relevance)}
-      ${flagTags(ev)}
-      <span class="muted">${fmtTimeBJ(ev.publish_time || ev.event_time)}</span>
-    </div>
+
+  // 风险等级标签（信息类不显示风险等级）
+  const riskLabel = isInfo ? "" : `<span class="ec-risk ec-risk-${risk}">${RISK_NAME[risk] || "低风险"}</span>`;
+
+  // Tags: 只保留与新闻直接相关的地区/主题/业务领域，最多4个
+  const tags = _buildEventTags(ev);
+
+  const tagLine = (riskLabel + tags) ? `<div class="ec-tags">${riskLabel}${tags}</div>` : "";
+
+  return `<a class="panel ecard" href="${url}">
+    <div class="ec-title">${esc(ev.title_zh || ev.title_original)}</div>
+    ${ev.summary ? `<div class="ec-summary">${esc(ev.summary).slice(0, 120)}</div>` : ""}
+    ${tagLine}
   </a>`;
+}
+
+/**
+ * 为事件卡片构建语义化Tags（最多4个）。
+ * 仅包含：国家/地区、主题关键词、业务领域。
+ * 排除：状态/可信度/WQ1/内容类型等管理字段。
+ */
+function _buildEventTags(ev) {
+  const tags = [];
+  const seen = new Set();
+
+  function add(text) {
+    if (!text || seen.has(text)) return;
+    if (tags.length >= 4) return;
+    seen.add(text);
+    tags.push(`<span class="ec-tag">${esc(text)}</span>`);
+  }
+
+  // 国家
+  if (ev.country) add(ev.country);
+  // 城市（仅当与国家不同时）
+  if (ev.city && ev.city !== ev.country) add(ev.city);
+
+  // 业务领域关键词（从分类和影响标记提取）
+  if (ev.affects_energy) add("能源安全");
+  if (ev.category === "交通、航空和出行风险" || ev.affects_airport) {
+    add("航空安全");
+  }
+  if (ev.affects_road || ev.affects_port) add("交通运输");
+  if (ev.involves_china_company || ev.involves_china_citizen) add("涉华");
+
+  return tags.join("");
 }
 
 // ---- 国家/地区风险 7 维渲染 ----
