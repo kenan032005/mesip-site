@@ -87,13 +87,27 @@ function eventCard(ev, opts) {
   // Tags: 只保留与新闻直接相关的地区/主题/业务领域，最多4个
   const tags = _buildEventTags(ev);
 
-  const tagLine = (riskLabel + tags) ? `<div class="ec-tags">${riskLabel}${tags}</div>` : "";
+  // 时间：格式化为 "MM-DD HH:mm"
+  const timeStr = _cardTime(ev.publish_time || ev.event_time);
+  const timeEl = timeStr ? `<span class="ec-time">${timeStr}</span>` : "";
+
+  const tagLine = (riskLabel + tags || timeEl) ? `<div class="ec-tags">${riskLabel}${tags}${timeEl}</div>` : "";
 
   return `<a class="panel ecard" href="${url}">
     <div class="ec-title">${esc(ev.title_zh || ev.title_original)}</div>
     ${ev.summary ? `<div class="ec-summary">${esc(ev.summary).slice(0, 120)}</div>` : ""}
     ${tagLine}
   </a>`;
+}
+
+/** 卡片内时间格式化：只显示月-日 时:分 */
+function _cardTime(s) {
+  if (!s) return "";
+  s = String(s).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s.slice(5); // "07-19"
+  var m = s.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/);
+  if (!m) return "";
+  return m[2] + "-" + m[3] + " " + m[4] + ":" + m[5];   // "07-19 14:30"
 }
 
 /**
