@@ -135,6 +135,14 @@ a:hover { text-decoration: underline; }
 .risk-2 { background: var(--risk-2-bg); color: var(--risk-2); }
 .risk-3 { background: var(--risk-3-bg); color: var(--risk-3); }
 .risk-4 { background: var(--risk-4-bg); color: var(--risk-4); }
+.risk-0 { background: #eceff1; color: #607d8b; }
+/* 可点击的风险标签：跳转评级方法页 */
+a.badge.risk-1, a.badge.risk-2, a.badge.risk-3, a.badge.risk-4 {
+  text-decoration: none; cursor: pointer; border: 1px solid transparent;
+}
+a.badge.risk-1:hover, a.badge.risk-2:hover, a.badge.risk-3:hover, a.badge.risk-4:hover {
+  filter: brightness(0.95); outline: 2px solid var(--brand-2); outline-offset: 1px;
+}
 .tag {
   display: inline-block; padding: 1px 8px; border-radius: 6px; font-size: 12px;
   background: #eef2f6; color: var(--ink-soft); margin: 2px 4px 2px 0;
@@ -147,6 +155,32 @@ a:hover { text-decoration: underline; }
 .ecard { display: flex; flex-direction: column; gap: 6px; }
 .ecard .ttl { font-weight: 600; color: var(--ink); font-size: 15px; }
 .ecard .ttl:hover { color: var(--brand-2); }
+
+/* ---------- event risk rating block ---------- */
+.rating-box { margin-top: 14px; padding: 14px; border: 1px solid #e3e8ee; border-radius: 10px; background: #fbfcfe; }
+.rating-box.info { background: #f5f7f9; border-style: dashed; }
+.rb-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.rb-head .mlink { margin-left: auto; font-size: 12px; color: var(--brand-2); text-decoration: none; }
+.rb-head .mlink:hover { text-decoration: underline; }
+.dims { margin: 12px 0 6px; display: grid; gap: 7px; }
+.dim { display: grid; grid-template-columns: 160px 1fr 56px; align-items: center; gap: 10px; font-size: 13px; }
+.dim-l { color: var(--ink-soft); }
+.dim-bar { height: 9px; background: #eef2f6; border-radius: 999px; overflow: hidden; }
+.dim-bar i { display: block; height: 100%; background: linear-gradient(90deg, #2f6feb, #e65100); border-radius: 999px; }
+.dim-v { text-align: right; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.rb-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.rb-reason { margin-top: 8px; font-size: 13px; color: #34414f; line-height: 1.6;
+  padding: 8px 10px; background: #fff; border-left: 3px solid var(--brand-2); border-radius: 4px; }
+@media (max-width: 560px) { .dim { grid-template-columns: 110px 1fr 48px; } }
+
+/* ---------- country risk cards ---------- */
+.cr-card { padding: 12px 14px; }
+.cr-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.cr-head .muted { margin-left: auto; }
+.cr-sub { margin: 18px 0 8px; font-size: 15px; color: var(--ink); }
+.cr-drivers { margin-top: 8px; font-size: 13px; color: #34414f; }
+.cr-drivers b { color: var(--ink); }
+.cr-wq1 { margin-top: 12px; padding: 10px 12px; background: #fff3e0; border-left: 3px solid #e65100; border-radius: 4px; font-size: 13px; }
 .ecard .meta { font-size: 12px; color: var(--ink-soft); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .ecard .sum { font-size: 13px; color: #34414f; }
 
