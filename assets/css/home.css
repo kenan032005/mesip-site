@@ -1,0 +1,155 @@
+/* ===== 社会安全态势与管理决策首页（home.css） ===== */
+.hp-hero {
+  background: linear-gradient(135deg, #0f2747 0%, #1b3a63 55%, #244b7d 100%);
+  color: #fff;
+  padding: 38px 20px 30px;
+}
+.hp-hero-inner { max-width: 1180px; margin: 0 auto; }
+.hp-kicker {
+  font-size: 13px; letter-spacing: .5px; color: #aecbff; margin-bottom: 10px;
+}
+.hp-hero h1 { font-size: 30px; margin: 0 0 16px; font-weight: 700; }
+.hp-overall { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.hp-risk-badge {
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  font-size: 18px; font-weight: 700; background: #fff; color: #1b3a63;
+}
+.hp-risk-badge.hp-r1 { background: #e3f2fd; color: #1565c0; }
+.hp-risk-badge.hp-r2 { background: #fff8e1; color: #f9a825; }
+.hp-risk-badge.hp-r3 { background: #ffe0b2; color: #ef6c00; }
+.hp-risk-badge.hp-r4 { background: #ffcdd2; color: #c62828; }
+.hp-trend-line { font-size: 15px; color: #dbeafe; }
+.hp-window { font-size: 12px; color: #9fb8d8; margin-left: auto; }
+.hp-sit-text {
+  font-size: 16px; line-height: 1.8; max-width: 920px;
+  background: rgba(255,255,255,.08); border-left: 3px solid #4f8bff;
+  padding: 14px 16px; border-radius: 6px; margin: 0 0 20px;
+}
+.hp-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.hp-metric {
+  display: block; text-decoration: none; color: #fff;
+  background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.16);
+  border-radius: 10px; padding: 14px 16px; transition: .15s;
+}
+.hp-metric:hover { background: rgba(255,255,255,.18); transform: translateY(-2px); }
+.hp-metric-val { font-size: 26px; font-weight: 800; color: #ffd86b; }
+.hp-metric-label { font-size: 13px; color: #cfe0f5; margin-top: 4px; }
+
+.hp-main { max-width: 1180px; margin: 0 auto; padding: 8px 20px 30px; }
+.hp-block { margin-top: 30px; }
+.hp-h2 {
+  font-size: 20px; margin: 0 0 14px; padding-left: 12px;
+  border-left: 4px solid #244b7d; color: #16335c;
+}
+.hp-h3 { font-size: 16px; margin: 0 0 10px; color: #244b7d; }
+
+/* WQ1 影响 */
+.hp-wq1-note {
+  background: #e8f5e9; color: #2e7d32; padding: 10px 14px;
+  border-radius: 8px; font-size: 14px; margin-bottom: 12px;
+}
+.hp-wq1 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.hp-wq1-card {
+  background: #fff; border: 1px solid #e3e8ef; border-left: 4px solid #cfd8e3;
+  border-radius: 10px; padding: 14px 16px;
+}
+.hp-wq1-card.ok { border-left-color: #43a047; }
+.hp-wq1-card.watch { border-left-color: #f9a825; }
+.hp-wq1-card.affected { border-left-color: #ef6c00; }
+.hp-wq1-card.severe { border-left-color: #c62828; }
+.hp-wq1-label { font-size: 14px; font-weight: 600; color: #16335c; }
+.hp-wq1-status { font-size: 15px; font-weight: 700; margin: 6px 0 4px; }
+.hp-wq1-card.ok .hp-wq1-status { color: #2e7d32; }
+.hp-wq1-card.watch .hp-wq1-status { color: #f9a825; }
+.hp-wq1-card.affected .hp-wq1-status { color: #ef6c00; }
+.hp-wq1-card.severe .hp-wq1-status { color: #c62828; }
+.hp-wq1-detail { font-size: 13px; color: #5a6b80; line-height: 1.6; }
+
+/* 预警 */
+.hp-alerts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.hp-alert {
+  display: block; text-decoration: none; color: inherit; background: #fff;
+  border: 1px solid #e3e8ef; border-radius: 10px; padding: 14px 16px; transition: .15s;
+}
+.hp-alert:hover { box-shadow: 0 4px 14px rgba(20,51,92,.12); transform: translateY(-2px); }
+.hp-alert-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.hp-cred { font-size: 12px; color: #8a6d3b; background: #fff7e6; padding: 2px 8px; border-radius: 10px; }
+.hp-alert-time { font-size: 12px; color: #90a0b3; margin-left: auto; }
+.hp-alert-title { font-size: 15px; font-weight: 700; line-height: 1.5; margin-bottom: 8px; color: #16335c; }
+.hp-alert-conf { font-size: 13px; color: #445; line-height: 1.6; margin-bottom: 8px; }
+.hp-alert-rows { font-size: 13px; color: #4a5a6e; line-height: 1.7; border-top: 1px dashed #e3e8ef; padding-top: 8px; }
+.hp-alert-rows b { color: #16335c; }
+
+/* 风险等级徽章（通用） */
+.hp-ev-risk {
+  display: inline-block; padding: 2px 9px; border-radius: 10px;
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+}
+.hp-r1 { background: #e3f2fd; color: #1565c0; }
+.hp-r2 { background: #fff8e1; color: #f9a825; }
+.hp-r3 { background: #ffe0b2; color: #ef6c00; }
+.hp-r4 { background: #ffcdd2; color: #c62828; }
+
+/* 伊拉克 / 巴士拉 */
+.hp-iraq { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.hp-iraq-col { background: #f7f9fc; border: 1px solid #e7edf5; border-radius: 12px; padding: 16px 18px; }
+.hp-iraq-col.hp-basra { background: #fff8f3; border-color: #f3e0d2; }
+.hp-bucket { margin-bottom: 14px; }
+.hp-bucket:last-child { margin-bottom: 0; }
+.hp-bucket-h {
+  font-size: 13px; font-weight: 700; color: #5a6b80; margin-bottom: 8px;
+  padding-bottom: 4px; border-bottom: 1px solid #e3e8ef;
+}
+.hp-ev {
+  display: flex; gap: 10px; text-decoration: none; color: inherit;
+  padding: 8px; border-radius: 8px; transition: .12s; align-items: flex-start;
+}
+.hp-ev:hover { background: #fff; }
+.hp-ev-body { flex: 1; min-width: 0; }
+.hp-ev-title { font-size: 13px; font-weight: 600; line-height: 1.45; color: #1f2d3d; }
+.hp-ev-meta { font-size: 11px; color: #90a0b3; margin: 2px 0; }
+.hp-ev-sum { font-size: 12px; color: #5a6b80; line-height: 1.5; }
+.hp-empty-sm { font-size: 12px; color: #9aa7b6; padding: 6px 8px; font-style: italic; }
+.hp-empty { font-size: 14px; color: #9aa7b6; padding: 18px; text-align: center; background: #f7f9fc; border-radius: 10px; }
+
+/* 地区风险 */
+.hp-region { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.hp-rcard {
+  display: block; text-decoration: none; color: inherit; background: #fff;
+  border: 1px solid #e3e8ef; border-radius: 10px; padding: 14px 16px; transition: .15s;
+}
+.hp-rcard:hover { box-shadow: 0 4px 14px rgba(20,51,92,.12); transform: translateY(-2px); }
+.hp-rcard-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.hp-trend { font-size: 12px; font-weight: 700; }
+.hp-trend.up { color: #c62828; }
+.hp-trend.down { color: #2e7d32; }
+.hp-trend.flat { color: #757575; }
+.hp-rcard-name { font-size: 16px; font-weight: 700; color: #16335c; margin-bottom: 6px; }
+.hp-rcard-main { font-size: 13px; color: #4a5a6e; line-height: 1.5; }
+.hp-rcard-link { font-size: 12px; color: #90a0b3; margin-top: 6px; }
+
+/* 当日日报 */
+.hp-daily { background: #f7f9fc; border: 1px solid #e7edf5; border-radius: 12px; padding: 18px 20px; }
+.hp-daily-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.hp-daily-status { padding: 4px 12px; border-radius: 14px; font-size: 13px; font-weight: 700; }
+.hp-daily-status.ok { background: #e8f5e9; color: #2e7d32; }
+.hp-daily-status.pending { background: #fff8e1; color: #f9a825; }
+.hp-daily-status.error { background: #ffebee; color: #c62828; }
+.hp-daily-name { font-size: 16px; font-weight: 700; color: #16335c; }
+.hp-daily-concl { margin: 0 0 14px; padding-left: 20px; }
+.hp-daily-concl li { font-size: 14px; color: #33445a; line-height: 1.8; }
+.hp-daily-links { display: flex; gap: 10px; flex-wrap: wrap; }
+.hp-daily-links .btn { text-decoration: none; }
+.btn.ghost { background: #fff; border: 1px solid #c9d6e5; color: #244b7d; }
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .hp-metrics { grid-template-columns: repeat(2, 1fr); }
+  .hp-wq1, .hp-alerts, .hp-region { grid-template-columns: repeat(2, 1fr); }
+  .hp-iraq { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .hp-hero h1 { font-size: 24px; }
+  .hp-metrics, .hp-wq1, .hp-alerts, .hp-region { grid-template-columns: 1fr; }
+  .hp-window { margin-left: 0; width: 100%; }
+}
