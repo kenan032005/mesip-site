@@ -1,11 +1,23 @@
 // MESIP shared helpers + header/footer
 const RISK_NAME = { 1: "低风险", 2: "中风险", 3: "高风险", 4: "极高风险" };
-const CATEGORIES = [
-  "武装冲突和军事行动", "恐怖主义和爆炸事件", "社会治安事件",
-  "示威、罢工和社会动荡", "政治和政府动态", "交通、航空和出行风险",
-  "能源和重要基础设施安全", "自然灾害和公共安全事件", "公共卫生风险",
-  "涉及中国企业和公民", "其他安全信息",
+// 分类体系：一律以英文 category_code 为权威键，zh 仅作展示。
+// 任何筛选 / 分桶都必须使用 code，不得用中文名做精确比较。
+const CATEGORY_LIST = [
+  { code: "armed_conflict", zh: "武装冲突与军事行动" },
+  { code: "terrorism", zh: "恐怖主义与爆炸事件" },
+  { code: "public_security", zh: "社会治安" },
+  { code: "protest_social_stability", zh: "示威与社会稳定" },
+  { code: "politics_governance", zh: "政治与政府政策" },
+  { code: "airspace_transport", zh: "领空与交通" },
+  { code: "energy_infrastructure", zh: "能源与重要基础设施" },
+  { code: "natural_disaster", zh: "自然灾害与公共安全" },
+  { code: "public_health", zh: "公共卫生风险" },
+  { code: "china_related", zh: "涉及中国企业和公民" },
+  { code: "diplomacy_regional_relations", zh: "外交及地区关系" },
+  { code: "other", zh: "其他安全信息" },
 ];
+// 向后兼容别名（部分旧页面仍按 CATEGORIES 引用，这里给出 code 数组）
+const CATEGORIES = CATEGORY_LIST.map(x => x.code);
 
 // 中东重点国家（与 config/countries.json 保持一致；静态版与实时版共用）
 const COUNTRIES = ["伊拉克","伊朗","以色列","巴勒斯坦","黎巴嫩","叙利亚","也门","沙特阿拉伯","科威特","阿联酋","卡塔尔","巴林","阿曼","约旦","土耳其","埃及"];
@@ -133,7 +145,7 @@ function _buildEventTags(ev) {
 
   // 业务领域关键词（从分类和影响标记提取）
   if (ev.affects_energy) add("能源安全");
-  if (ev.category === "交通、航空和出行风险" || ev.affects_airport) {
+  if ((ev.category_code || ev.category) === "airspace_transport" || ev.affects_airport) {
     add("航空安全");
   }
   if (ev.affects_road || ev.affects_port) add("交通运输");
@@ -242,7 +254,7 @@ function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
     ["countries.html", "国家"], ["pro_analysis.html", "专业机构分析"], ["reports.html", "日报"],
-    ["methodology.html", "评级方法"], ["admin.html", "后台"],
+    ["methodology.html", "评级方法"], ["monitor.html", "监控"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
   const bar = $( "#topbar" );
