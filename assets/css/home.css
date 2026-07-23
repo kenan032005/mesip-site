@@ -35,58 +35,111 @@
 .hp-metric-val { font-size: 26px; font-weight: 800; color: #ffd86b; }
 .hp-metric-label { font-size: 13px; color: #cfe0f5; margin-top: 4px; }
 
-/* ===== 首页 hero 左右布局：左侧安全态势(65-70%) + 右侧布伦特油价(30-35%) ===== */
+/* ===== 首页 hero 左右布局：左侧安全态势(~68%) + 右侧布伦特油价(~32%) ===== */
 .hp-hero-grid {
   max-width: 1180px; margin: 0 auto;
-  display: flex; gap: 22px; align-items: stretch;
+  display: flex; gap: 20px; align-items: stretch;
 }
-.hp-hero-left { flex: 1 1 66%; min-width: 0; }
+.hp-hero-left { flex: 1 1 68%; min-width: 0; }
 .hp-hero-right,
-.hp-brent { flex: 0 0 33%; max-width: 380px; }
+.hp-brent { flex: 0 0 32%; max-width: 360px; }
 
-/* 布伦特油价卡片 */
+/* 布伦特油价卡片（视觉与首页其他卡片一致：白底+细线+左侧品牌色描边+轻阴影） */
 .hp-brent {
-  background: #fff; color: #1c2733;
-  border-radius: 14px; padding: 16px 16px 14px;
-  box-shadow: 0 8px 24px rgba(8, 26, 51, .22);
+  background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brand-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px 12px;
   display: flex; flex-direction: column;
   align-self: flex-start;
-  border: 1px solid #e7edf5;
 }
-.hp-brent-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-.hp-brent-title { font-size: 15px; font-weight: 700; color: #14365f; }
+/* 卡头：标题两行 + 状态（右上） */
+.hp-brent-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px; margin-bottom: 8px;
+}
+.hp-brent-title { font-size: 16px; font-weight: 600; color: var(--brand); line-height: 1.3; }
+.hp-brent-subtitle { display: block; margin-top: 2px; font-size: 11px; font-weight: 400; color: var(--ink-soft); }
+/* 状态标签：中性灰底，与左侧安全态势基调一致；失败态保留低饱和红字 */
 .hp-brent-status {
-  font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px;
-  background: #eef3fb; color: #2f6feb; white-space: nowrap;
+  font-size: 11px; font-weight: 500;
+  padding: 2px 8px; border-radius: 999px;
+  background: #eef2f6; color: var(--ink-soft);
+  border: 1px solid var(--line);
+  white-space: nowrap; flex-shrink: 0;
 }
-.hp-brent-status.st-open { background: #e6f6ec; color: #1a9e57; }
-.hp-brent-status.st-closed { background: #eef3fb; color: #456; }
-.hp-brent-status.st-holiday { background: #fff3e0; color: #d98300; }
-.hp-brent-status.st-delayed { background: #fff3e0; color: #d98300; }
-.hp-brent-status.st-failed { background: #ffe3e3; color: #c62828; }
-.hp-brent-price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
-.hp-brent-price { font-size: 32px; font-weight: 800; color: #111; line-height: 1; letter-spacing: .5px; }
-.hp-brent-unit { font-size: 13px; color: #6b7a8d; }
-.hp-brent-change { font-size: 13.5px; margin-bottom: 6px; }
-.hp-brent-change.up { color: #c62828; }     /* 涨=红（与网站金融色一致）；方向由正负号表达 */
-.hp-brent-change.down { color: #1a9e57; }   /* 跌=绿 */
-.hp-brent-change b { font-weight: 700; }
-.hp-brent-range { font-size: 12.5px; color: #6b7a8d; margin-bottom: 8px; }
-.hp-brent-chart { position: relative; margin-bottom: 8px; }
-.hp-chart-svg { display: block; }
-.hp-chart-x { font-size: 8.5px; fill: #93a3b5; }
+.hp-brent-status.st-open,
+.hp-brent-status.st-closed,
+.hp-brent-status.st-holiday { background: #eef2f6; color: var(--ink-soft); }
+.hp-brent-status.st-delayed { background: #eef2f6; color: var(--ink-soft); }
+.hp-brent-status.st-failed  { background: #fbe9e9; color: #b71c1c; border-color: #f3cccc; }
+
+/* 价格行 */
+.hp-brent-price-row {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-top: 10px; margin-bottom: 4px;
+}
+.hp-brent-price {
+  font-size: 30px; font-weight: 700;
+  color: var(--ink); line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.hp-brent-unit { font-size: 13px; color: var(--ink-soft); font-weight: 400; }
+
+/* 涨跌 + 30日区间 合并为同一行（紧凑） */
+.hp-brent-meta-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 10px; margin-top: 4px; margin-bottom: 8px;
+  font-size: 12px; color: var(--ink-soft);
+  flex-wrap: wrap;
+}
+.hp-brent-change { font-size: 12px; }
+.hp-brent-change .arr { font-weight: 600; margin-right: 3px; }
+.hp-brent-change.up .arr   { color: #2e7d32; }
+.hp-brent-change.down .arr { color: #c62828; }
+.hp-brent-change.up .num   { color: #2e7d32; font-weight: 600; }
+.hp-brent-change.down .num { color: #c62828; font-weight: 600; }
+.hp-brent-range { font-size: 12px; color: var(--ink-soft); }
+.hp-brent-range b { color: var(--ink); font-weight: 500; }
+
+/* 折线图：网站主蓝 #14507e / 2px / 最新数据点 #c9952b */
+.hp-brent-chart {
+  position: relative;
+  margin-top: 4px; margin-bottom: 6px;
+  height: 135px;
+}
+.hp-chart-svg { display: block; width: 100%; height: 135px; }
+.hp-chart-grid { stroke: #edf1f5; stroke-width: 1; stroke-dasharray: 2 3; }
+.hp-chart-axis { stroke: #edf1f5; stroke-width: 1; }
+.hp-chart-x { font-size: 9px; fill: #7b8794; font-variant-numeric: tabular-nums; }
+.hp-chart-y { font-size: 9px; fill: #7b8794; font-variant-numeric: tabular-nums; }
 .hp-chart-tip {
-  position: absolute; top: 2px; transform: translateX(-50%);
-  background: #14365f; color: #fff; font-size: 11px; line-height: 1.45;
-  padding: 4px 8px; border-radius: 6px; pointer-events: none; white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,.25); z-index: 5;
+  position: absolute; top: 0; transform: translateX(-50%);
+  background: var(--brand); color: #fff; font-size: 11px; line-height: 1.45;
+  padding: 4px 8px; border-radius: 4px; pointer-events: none; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(15,40,70,.18); z-index: 5;
 }
-.hp-brent-foot { font-size: 11.5px; color: #7a8898; display: flex; flex-direction: column; gap: 2px; }
-.hp-brent-foot a { color: #2f6feb; text-decoration: none; }
+
+/* 页脚：更新时间 + 来源 */
+.hp-brent-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin-top: 6px; padding-top: 7px;
+  border-top: 1px solid #edf1f5;
+  font-size: 11px; color: #7b8794;
+  flex-wrap: wrap;
+}
+.hp-brent-foot a { color: var(--brand-2); text-decoration: none; }
 .hp-brent-foot a:hover { text-decoration: underline; }
+.hp-brent-foot .src { color: #7b8794; }
+
+/* 异常/陈旧提示：低饱和度，不再是黄底 */
 .hp-brent-note {
-  margin-top: 8px; font-size: 12px; line-height: 1.55; color: #9a4a00;
-  background: #fff7e6; border: 1px solid #ffe0a3; border-radius: 8px; padding: 8px 10px;
+  margin-top: 8px; font-size: 11.5px; line-height: 1.55;
+  color: #b71c1c;
+  background: #fbe9e9; border: 1px solid #f3cccc; border-left: 3px solid #c62828;
+  border-radius: 6px; padding: 7px 10px;
 }
 
 .hp-main { max-width: 1180px; margin: 0 auto; padding: 8px 20px 30px; }
@@ -273,15 +326,21 @@
   .hp-wq1, .hp-alerts, .hp-region { grid-template-columns: repeat(2, 1fr); }
   .hp-iraq { grid-template-columns: 1fr; }
   /* hero 左右布局在移动端改为上下布局：先安全态势，后油价卡片 */
-  .hp-hero-grid { flex-direction: column; }
+  .hp-hero-grid { flex-direction: column; gap: 16px; }
   .hp-hero-right,
   .hp-brent { flex: 1 1 auto; max-width: none; width: 100%; }
-  .hp-brent-price { font-size: 30px; }
+  .hp-brent-price { font-size: 28px; }
+  .hp-brent-chart { height: 130px; }
+  .hp-chart-svg { height: 130px; }
 }
 @media (max-width: 560px) {
   .hp-hero h1 { font-size: 24px; }
   .hp-metrics, .hp-wq1, .hp-alerts, .hp-region { grid-template-columns: 1fr; }
   .hp-window { margin-left: 0; width: 100%; }
+  /* 油价 meta 行窄屏换行：涨跌一行、30日区间单独一行 */
+  .hp-brent-meta-row { gap: 4px; }
+  .hp-brent-range { width: 100%; }
+  .hp-brent-foot { flex-direction: column; align-items: flex-start; gap: 4px; }
   /* 霍尔木兹表格在窄屏转为卡片：每行独立纵向展示，来源链接仍可点击 */
   .hp-hormuz-table, .hp-hormuz-table tbody, .hp-hormuz-table tr, .hp-hormuz-table td { display: block; width: 100%; }
   .hp-hormuz-table { border: none; table-layout: auto; }
