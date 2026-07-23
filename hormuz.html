@@ -3,18 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>事件详情 · 中东地区社会安全信息平台</title>
+<title>霍尔木兹海峡通航情况（详细） · 中东地区社会安全信息平台</title>
 <link rel="stylesheet" href="assets/css/style.css?v=1784821065">
+<style>
+  .hz-page { max-width: 980px; }
+  .hz-meta-line { font-size: 12.5px; color: #6b7c91; line-height: 1.7; margin-bottom: 14px; }
+  .hz-status-box {
+    background: #f3f7fc; border: 1px solid #d8e3f0; border-left: 4px solid #244b7d;
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; line-height: 1.6;
+  }
+  .hz-status-box .lbl { font-weight: 700; color: #16335c; margin-right: 8px; }
+  .hz-badge {
+    display: inline-block; padding: 3px 12px; border-radius: 14px;
+    font-size: 13px; font-weight: 700; color: #fff; margin-right: 10px; vertical-align: middle;
+  }
+  .hz-badge.lv-ok { background: #2e7d32; }
+  .hz-badge.lv-basic { background: #43a047; }
+  .hz-badge.lv-limited { background: #ef6c00; }
+  .hz-badge.lv-severe { background: #c62828; }
+  .hz-badge.lv-blocked { background: #7b1fa2; }
+  .hz-badge.lv-unknown { background: #757575; }
+  .hz-analysis {
+    background: #f8fafc; border-left: 3px solid var(--brand-2, #14507e);
+    border-radius: 0 8px 8px 0; padding: 14px 18px; margin-bottom: 20px;
+  }
+  .hz-analysis h3 { margin: 0 0 8px; font-size: 15px; color: #16335c; }
+  .hz-analysis p { margin: 0; font-size: 14px; color: #33445a; line-height: 1.85; white-space: pre-line; }
+  .hz-item-card {
+    background: #fff; border: 1px solid #e3e8ef; border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 14px;
+  }
+  .hz-item-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .hz-item-head h3 { margin: 0; font-size: 15px; color: #16335c; }
+  .hz-tag {
+    display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12.5px; font-weight: 600;
+  }
+  .hz-tag.st-ok { background: #eef7ee; color: #2e7d32; }
+  .hz-tag.st-warn { background: #fdf3e7; color: #b3630f; }
+  .hz-tag.st-bad { background: #fdecea; color: #c62828; }
+  .hz-tag.st-neutral { background: #f0f4f8; color: #33445a; }
+  .hz-field { margin-bottom: 8px; }
+  .hz-field b { display: block; font-size: 12.5px; color: #16335c; margin-bottom: 2px; }
+  .hz-field p { margin: 0; font-size: 13.5px; color: #33445a; line-height: 1.75; }
+  .hz-field a { color: #2f6feb; text-decoration: none; margin-right: 10px; }
+  .hz-field a:hover { text-decoration: underline; }
+  .hz-back { margin: 18px 0; }
+  .hz-back a { color: #2f6feb; text-decoration: none; font-size: 13.5px; }
+  .hz-nodata { font-size: 14px; color: #9aa7b6; padding: 16px; background: #f7f9fc; border-radius: 8px; }
+</style>
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
-<div class="container">
-  <p><a href="events.html">← 返回事件列表</a></p>
-  <div class="panel" id="detail"><p class="muted">加载中……</p></div>
-  <div class="section">
-    <h2>相关事件</h2>
-    <div class="grid cards" id="related"></div>
+<div class="container hz-page">
+
+  <div class="hero">
+    <h1>霍尔木兹海峡通航情况（详细）</h1>
+    <p class="muted">本页展示最近一次成功生成的完整通航情况报告：各事项完整进展、完整影响评估与全部信息来源。首页展示为紧凑版。所有时间均为北京时间（GMT+8）。</p>
   </div>
+
+  <div class="hz-meta-line" id="hzMeta"></div>
+  <div class="hz-status-box" id="hzStatus"></div>
+  <div class="hz-analysis" id="hzAnalysis" style="display:none;">
+    <h3>分析判断</h3>
+    <p id="hzAnalysisBody"></p>
+  </div>
+
+  <div id="hzItems"></div>
+
+  <div class="hz-back"><a href="index.html">← 返回首页</a></div>
 </div>
 <footer class="site"></footer>
 
@@ -144,132 +200,81 @@ window.__STATIC__ = true;
 })();
 </script>
 <script>
-renderHeader("event.html");
-const id = getQS("id");
-
-function dimBar(label, val, max) {
-  const v = Number(val) || 0;
-  const pct = Math.max(0, Math.min(100, (v / max) * 100));
-  return `<div class="dim"><span class="dim-l">${esc(label)}</span>` +
-    `<span class="dim-bar"><i style="width:${pct}%"></i></span>` +
-    `<span class="dim-v">${v}/${max}</span></div>`;
+renderHeader("hormuz.html");
+var HZ_LVL = {
+  "通航正常": "ok", "基本正常": "basic", "通航受限": "limited",
+  "通航严重受限": "severe", "实际中断": "blocked", "信息不足，暂无法判断": "unknown"
+};
+function hzEsc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-
-function riskRatingBlock(e) {
-  const ct = e.content_type || "A";
-  const isInfo = (ct === "D" || ct === "E" || ct === "F" || ct === "G");
-  const srcCount = (e.updates && Array.isArray(e.updates) && e.updates.length)
-    ? e.updates.length : (e.source_count || 1);
-  if (isInfo) {
-    return `<div class="rating-box info">
-      <div class="rb-head">${contentTypeBadge(ct)} <b>${esc((CONTENT_TYPES[ct] || ["信息"])[0])}</b>
-        ${statusBadge(e.event_status)}</div>
-      <p class="muted small">该内容属于“${esc((CONTENT_TYPES[ct] || ["信息"])[0])}”，不赋予安全事件风险等级，不计入安全事件统计。</p>
-      <div class="rb-row">${credBadge(e.credibility_grade)} ${wq1Badge(e.wq1_relevance)}
-        <span class="tag">来源 ${srcCount} 条</span></div>
-      ${e.risk_rationale ? `<div class="rb-reason">${esc(e.risk_rationale)}</div>` : ""}
-    </div>`;
-  }
-  const risk = Number(e.risk_level) || 0;
-  const score = (e.risk_score !== null && e.risk_score !== undefined && e.risk_score !== "") ? e.risk_score : "—";
-  return `<div class="rating-box">
-    <div class="rb-head">${contentTypeBadge(ct)} ${riskBadge(risk)}
-      <b>评分 ${esc(score)}/100</b> ${statusBadge(e.event_status)}
-      <a class="mlink" href="methodology.html#event" target="_blank" rel="noopener">评级方法 ↗</a></div>
-    <div class="dims">
-      ${dimBar("人员及财产后果", e.score_consequence, 30)}
-      ${dimBar("事件范围和影响规模", e.score_scope, 15)}
-      ${dimBar("持续性和升级可能", e.score_persistence, 20)}
-      ${dimBar("交通、能源和运营中断", e.score_disruption, 20)}
-      ${dimBar("行为主体意图和能力", e.score_actor, 15)}
-    </div>
-    <div class="rb-row">${credBadge(e.credibility_grade)} ${wq1Badge(e.wq1_relevance)}
-      <span class="tag">来源 ${srcCount} 条</span></div>
-    <div class="rb-reason"><b>评级理由：</b>${esc(e.risk_rationale || "—")}</div>
-  </div>`;
+function hzUrl(u) { return u ? encodeURI(u) : "#"; }
+function hzCls(txt) {
+  var s = String(txt || "");
+  if (/中断|关闭|禁行|停航|停运/.test(s)) return "st-bad";
+  if (/受限|暂停|收紧|上调|升高|拒航|扣押|遇袭|附加/.test(s)) return "st-warn";
+  if (/正常|恢复|平稳|维持/.test(s)) return "st-ok";
+  return "st-neutral";
 }
-
-function renderFulltext(e) {
-  const box = document.getElementById("fulltext-box");
-  if (!box) return;
-  if (e.full_text_zh && e.full_text_zh.trim()) {
-    box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文（中文翻译）</h3>` +
-      `<div class="fulltext-body" style="white-space:pre-wrap;line-height:1.75;">${esc(e.full_text_zh).replace(/\n/g, "<br>")}</div>`;
+function hzFmt(s) {
+  if (!s) return "";
+  var m = String(s).match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/);
+  if (m) return m[1] + "年" + parseInt(m[2], 10) + "月" + parseInt(m[3], 10) + "日" + m[4] + ":" + m[5];
+  return String(s);
+}
+function renderDetail(d) {
+  var metaEl = document.getElementById("hzMeta");
+  var statusEl = document.getElementById("hzStatus");
+  var anaWrap = document.getElementById("hzAnalysis");
+  var anaBody = document.getElementById("hzAnalysisBody");
+  var itemsEl = document.getElementById("hzItems");
+  if (!d) {
+    statusEl.innerHTML = '<div class="hz-nodata">暂无霍尔木兹海峡通航数据。</div>';
     return;
   }
-  // 静态归档版（GitHub Pages 等无后端）无法按需抓取并翻译原文，
-  // 此处直接给出明确提示 + 原文链接，避免“正在获取/获取失败”的误导性空状态。
-  if (window.__STATIC__) {
-    const link = (e.source_url)
-      ? `<a href="${esc(e.source_url)}" target="_blank" rel="noopener">查看新闻原文 ↗</a>`
-      : (e.source_name ? esc(e.source_name) : "无原文链接");
-    box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文</h3>` +
-      `<p class="muted small">本静态归档版未收录该新闻的中文全文翻译。${link}</p>`;
-    return;
-  }
-  const st = e.fulltext_status;
-  if (st === "unavailable") {
-    box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文</h3><p class="muted small">该新闻原文未提供可翻译的正文，暂不支持全文展示。</p>`;
-    return;
-  }
-  box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文</h3><p class="muted small">正在获取并翻译原文全文……</p>`;
-  API.get("/api/event/" + id + "/fulltext").then(r => {
-    if (r.status === "done" && r.full_text_zh) {
-      box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文（中文翻译）</h3>` +
-        `<div class="fulltext-body" style="white-space:pre-wrap;line-height:1.75;">${esc(r.full_text_zh).replace(/\n/g, "<br>")}</div>`;
-    } else {
-      box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文</h3><p class="muted small">${esc(r.note || "暂无法获取该新闻的全文翻译。")}</p>`;
-    }
-  }).catch(err => {
-    box.innerHTML = `<h3 style="margin:0 0 6px;">新闻全文</h3><p class="muted small">获取全文失败：${esc(err.message)}</p>`;
-  });
-}
+  var parts = [];
+  if (d.report_date) parts.push("报告日期：" + d.report_date);
+  if (d.generated_at) parts.push("更新时间：" + hzFmt(d.generated_at) + "（北京时间）");
+  if (d.data_scope) parts.push("数据范围：" + d.data_scope);
+  if (d.next_update_time) parts.push("下次更新：" + hzFmt(d.next_update_time));
+  metaEl.textContent = parts.join(" · ");
 
-API.get("/api/event/" + id).then(d => {
-  if (!d.event) { $("#detail").innerHTML = `<div class="empty">未找到该事件。</div>`; return; }
-  const e = d.event;
-  const row = (k, v) => v ? `<div class="kv"><b>${k}</b><span>${v}</span></div>` : "";
-  let html = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
-      <h2 style="margin:0;border:none;padding:0;">${esc(e.title_zh || e.title_original)}</h2>
-      ${riskBadge(e.risk_level)}</div>`;
-  if (e.title_original && e.title_original !== e.title_zh) html += `<p class="muted small">原文标题：${esc(e.title_original)}</p>`;
-  if (e.source_url) html += `<div style="margin-top:10px;"><a class="src-link" href="${esc(e.source_url)}" target="_blank" rel="noopener">🔗 查看新闻原文</a></div>`;
-  html += `<div class="meta" style="margin-top:14px;">
-    ${row("国家", esc(e.country))}
-    ${row("城市/地区", esc(e.city))}
-    ${row("事件发生时间", fmtTimeBJ(e.event_time))}
-    ${row("信息发布时间", fmtTimeBJ(e.publish_time))}
-    ${row("事件类别", esc(e.category))}
-    ${row("信息可信度", esc(e.credibility_name))}
-    ${row("人员伤亡", esc(e.casualties))}
-    ${row("对当地社会安全影响", esc(e.impact_social))}
-    ${row("对外国人和企业影响", esc(e.impact_foreign))}
-    ${row("对中国企业和公民影响", esc(e.impact_china))}
-    ${row("对交通/机场/港口/道路影响", esc(e.impact_transport))}
-    ${row("对能源设施和项目影响", esc(e.impact_energy))}
-    ${row("后续可能发展", esc(e.trend))}
-    ${row("信息来源", esc(e.source_name))}
-    ${row("原文链接", e.source_url ? `<a href="${esc(e.source_url)}" target="_blank" rel="noopener">打开原始来源 ↗</a>` : (e.source_name ? esc(e.source_name) : ""))}
-    ${row("最后更新", esc(e.updated_at))}
-  </div>`;
-  html += riskRatingBlock(e);
-  const summaryHtml = (e.summary && e.summary.trim())
-    ? esc(e.summary)
-    : `<span class="muted">暂无文字摘要，可查看下方「新闻全文」或${e.source_url ? `<a href="${esc(e.source_url)}" target="_blank" rel="noopener">原文链接 ↗</a>` : "原文"}。</span>`;
-  html += `<div style="margin-top:14px;"><h3 style="margin:0 0 6px;">事件摘要</h3><p>${summaryHtml}</p></div>`;
-  html += `<div id="fulltext-box" style="margin-top:14px;"></div>`;
-  if (e.detail && e.detail !== e.summary) html += `<div><h3 style="margin:0 0 6px;">详细情况</h3><p>${esc(e.detail)}</p></div>`;
-  html += `<div style="margin-top:14px;padding:12px;background:#fff8e1;border-radius:8px;"><b>安全建议：</b>${esc(e.advice)}</div>`;
-  if (e.updates && e.updates.length) {
-    html += `<div style="margin-top:14px;"><h3 style="margin:0 0 6px;">更新记录</h3><ul class="small">` +
-      e.updates.map(u => `<li>${esc(u.note)} <span class="muted">(${fmtTimeBJ(u.ts)})</span></li>`).join("") + `</ul></div>`;
+  var lvl = d.overall_status_level || "";
+  statusEl.innerHTML = '<span class="lbl">当前状态：</span>'
+    + '<span class="hz-badge lv-' + (HZ_LVL[lvl] || "unknown") + '">' + hzEsc(lvl) + '</span>'
+    + '<span>' + hzEsc(d.current_status || "") + '</span>';
+
+  if (d.analysis) {
+    anaWrap.style.display = "";
+    anaBody.textContent = d.analysis;
   }
-  html += `<div style="margin-top:10px;">${flagTags(e)}</div>`;
-  $("#detail").innerHTML = html;
-  renderFulltext(e);
-  $("#related").innerHTML = d.related.length ? d.related.map(x => eventCard(x)).join("")
-    : `<div class="empty">暂无相关事件。</div>`;
-}).catch(e => { $("#detail").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+
+  var items = d.items || [];
+  if (!items.length) {
+    itemsEl.innerHTML = '<div class="hz-nodata">暂无可展示的通航事项。</div>';
+    return;
+  }
+  itemsEl.innerHTML = items.map(function (it) {
+    var srcs = (it.sources || []).map(function (s) {
+      return '<a href="' + hzUrl(s.url || "#") + '" target="_blank" rel="noopener">' + hzEsc(s.name || s.url || "来源") + '</a>';
+    }).join("");
+    return '<div class="hz-item-card">'
+      + '<div class="hz-item-head"><h3>' + hzEsc(it.item_name || "") + '</h3>'
+      + '<span class="hz-tag ' + hzCls(it.current_status) + '">' + hzEsc(it.current_status || "") + '</span></div>'
+      + (it.effective_time ? '<div class="hz-field"><b>生效或发生时间</b><p>' + hzEsc(it.effective_time) + '</p></div>' : '')
+      + '<div class="hz-field"><b>最新进展</b><p>' + hzEsc(it.latest_progress || "") + '</p></div>'
+      + '<div class="hz-field"><b>对伊拉克及巴士拉的影响</b><p>' + hzEsc(it.iraq_basra_impact || "") + '</p></div>'
+      + (srcs ? '<div class="hz-field"><b>信息来源</b><p>' + srcs + '</p></div>' : '')
+      + '</div>';
+  }).join("");
+}
+API.get("/api/hormuz").then(function (d) {
+  renderDetail(d && d.report ? d.report : null);
+}).catch(function (e) {
+  document.getElementById("hzStatus").innerHTML = '<div class="hz-nodata">数据加载失败，请刷新重试。</div>';
+  console.error("hormuz detail load failed", e);
+});
 </script>
 </body>
 </html>

@@ -295,30 +295,78 @@
 .hp-hormuz-status-text { font-size: 14.5px; color: #1f2d3d; }
 .hp-hormuz-nodata { font-size: 14px; color: #9aa7b6; padding: 14px; background: #f7f9fc; border-radius: 8px; }
 
-.hp-hormuz-tablewrap { overflow-x: auto; }
-.hp-hormuz-table {
+/* 分析判断（位于表格上方，浅蓝灰底 + 品牌色左线，完整展示） */
+.hormuz-analysis {
+  margin: 0 0 14px; background: #f8fafc; border-left: 3px solid var(--brand-2, #14507e);
+  border-radius: 0 8px 8px 0; padding: 12px 16px;
+}
+.hormuz-analysis .hz-a-title { font-weight: 700; color: #16335c; font-size: 13.5px; margin-bottom: 6px; }
+.hormuz-analysis .hz-a-body { font-size: 13.5px; color: #33445a; line-height: 1.8; white-space: pre-line; }
+
+/* 四项核心状态摘要（一行四列紧凑状态条） */
+.hormuz-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;
+}
+.hz-sum-cell {
+  background: #f7f9fc; border: 1px solid #e3e8ef; border-radius: 8px;
+  padding: 8px 10px; min-height: 50px; max-height: 65px; overflow: hidden;
+}
+.hz-sum-name { font-size: 11.5px; color: #6b7c91; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hz-sum-val { font-size: 13px; font-weight: 700; line-height: 1.35; }
+.hz-sum-val.st-ok { color: #2e7d32; }
+.hz-sum-val.st-warn { color: #b3630f; }
+.hz-sum-val.st-bad { color: #c62828; }
+.hz-sum-val.st-neutral { color: #33445a; }
+
+/* 四列紧凑表格 */
+.hp-hormuz-tablewrap { overflow: visible; }
+.hormuz-table {
   width: 100%; border-collapse: collapse; font-size: 13px; background: #fff;
   border: 1px solid #e3e8ef; border-radius: 8px; overflow: hidden; table-layout: fixed;
 }
-.hp-hormuz-table th, .hp-hormuz-table td {
-  border: 1px solid #e7edf5; padding: 9px 10px; text-align: left; vertical-align: top; line-height: 1.55;
+.hormuz-table th, .hormuz-table td {
+  border: 1px solid #e7edf5; padding: 8px 10px; text-align: left; vertical-align: top; line-height: 1.5;
   word-break: break-word;
 }
-.hp-hormuz-table thead th {
+.hormuz-table thead th {
   background: #e8f0fa; color: #16335c; font-weight: 700; font-size: 12.5px;
-  border-bottom: 2px solid #c4d6ea;
+  height: 22px; padding: 8px 10px; border-bottom: 2px solid #c4d6ea;
 }
-.hp-hormuz-table .hz-item { font-weight: 600; color: #16335c; }
-.hp-hormuz-table .hz-status { color: #b3400f; font-weight: 600; }
-.hp-hormuz-table .hz-source a { color: #2f6feb; text-decoration: none; }
-.hp-hormuz-table .hz-source a:hover { text-decoration: underline; }
-.hp-hormuz-table .hp-hormuz-empty { text-align: center; color: #9aa7b6; padding: 18px; }
-.hp-hormuz-analysis {
-  margin-top: 14px; font-size: 13.5px; color: #33445a; line-height: 1.8;
-  background: #fbfdff; border: 1px solid #e1ecf7; border-left: 4px solid #2f6feb;
-  border-radius: 0 8px 8px 0; padding: 12px 16px;
+.hormuz-table .hz-item { font-weight: 600; color: #16335c; font-size: 12.5px; }
+.hormuz-table .hp-hormuz-empty { text-align: center; color: #9aa7b6; padding: 18px; }
+.hz-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; line-height: 1.4;
 }
-.hp-hormuz-analysis b { color: #16335c; }
+.hz-tag.st-ok { background: #eef7ee; color: #2e7d32; }
+.hz-tag.st-warn { background: #fdf3e7; color: #b3630f; }
+.hz-tag.st-bad { background: #fdecea; color: #c62828; }
+.hz-tag.st-neutral { background: #f0f4f8; color: #33445a; }
+.hz-cell-short { color: #1f2d3d; }
+.hz-meta { margin-top: 5px; font-size: 11.5px; color: #8a97a8; line-height: 1.6; }
+.hz-meta-time { margin-right: 8px; }
+.hz-meta-src a { color: #5b83c4; text-decoration: none; margin-right: 6px; }
+.hz-meta-src a:hover { text-decoration: underline; }
+.hz-toggle {
+  border: none; background: none; color: #2f6feb; font-size: 11.5px; cursor: pointer;
+  padding: 0; font-family: inherit;
+}
+.hz-toggle:hover { text-decoration: underline; }
+/* 展开详情行 */
+.hz-detail td { background: #fbfdff; padding: 0; }
+.hz-detail-inner {
+  padding: 12px 16px; animation: hzExpand .22s ease-out;
+}
+@keyframes hzExpand { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.hz-d-block { margin-bottom: 8px; }
+.hz-d-block:last-child { margin-bottom: 0; }
+.hz-d-block b { display: block; font-size: 12px; color: #16335c; margin-bottom: 2px; }
+.hz-d-block p { margin: 0; font-size: 12.5px; color: #33445a; line-height: 1.7; }
+.hz-d-src a { color: #2f6feb; text-decoration: none; margin-right: 8px; }
+.hz-d-src a:hover { text-decoration: underline; }
+/* 查看详细通航情况 入口 */
+.hormuz-more { margin-top: 10px; text-align: right; }
+.hormuz-more a { font-size: 13px; color: #2f6feb; text-decoration: none; font-weight: 600; }
+.hormuz-more a:hover { text-decoration: underline; }
 
 /* 响应式 */
 @media (max-width: 900px) {
@@ -341,16 +389,29 @@
   .hp-brent-meta-row { gap: 4px; }
   .hp-brent-range { width: 100%; }
   .hp-brent-foot { flex-direction: column; align-items: flex-start; gap: 4px; }
-  /* 霍尔木兹表格在窄屏转为卡片：每行独立纵向展示，来源链接仍可点击 */
-  .hp-hormuz-table, .hp-hormuz-table tbody, .hp-hormuz-table tr, .hp-hormuz-table td { display: block; width: 100%; }
-  .hp-hormuz-table { border: none; table-layout: auto; }
-  .hp-hormuz-table thead { display: none; }
-  .hp-hormuz-table tr {
-    border: 1px solid #e3e8ef; border-radius: 10px; padding: 6px 10px; margin-bottom: 12px; background: #fff;
+  /* 霍尔木兹：四项摘要转两列 */
+  .hormuz-summary { grid-template-columns: repeat(2, 1fr); }
+  .hz-sum-cell { max-height: none; }
+  /* 分析判断在移动端完整展示（不折叠） */
+  .hormuz-analysis .hz-a-body { font-size: 13px; }
+  /* 表格在窄屏转为折叠卡片：每行独立纵向展示，来源链接仍可点击 */
+  .hormuz-table, .hormuz-table tbody, .hormuz-table tr, .hormuz-table td { display: block; width: 100%; }
+  .hormuz-table { border: none; table-layout: auto; }
+  .hormuz-table colgroup { display: none; }
+  .hormuz-table thead { display: none; }
+  .hormuz-table tr.hz-row {
+    border: 1px solid #e3e8ef; border-radius: 10px; padding: 6px 10px; margin-bottom: 10px; background: #fff;
   }
-  .hp-hormuz-table td { border: none; padding: 5px 0; }
-  .hp-hormuz-table td::before {
+  .hormuz-table td { border: none; padding: 5px 0; }
+  .hormuz-table tr.hz-row td::before {
     content: attr(data-label); display: block; font-weight: 700; color: #16335c;
     font-size: 12px; margin-bottom: 2px;
   }
+  /* 展开详情行在移动端贴合上方卡片 */
+  .hormuz-table tr.hz-detail {
+    border: 1px solid #e3e8ef; border-top: none; border-radius: 0 0 10px 10px;
+    margin: -10px 0 10px; background: #fbfdff;
+  }
+  .hormuz-table tr.hz-detail[hidden] { display: none; }
+  .hormuz-more { text-align: center; }
 }
