@@ -53,7 +53,7 @@
   box-shadow: var(--shadow);
   padding: 14px 16px 12px;
   display: flex; flex-direction: column;
-  align-self: flex-start;
+  align-self: flex-end; /* 底边与左侧四个指标小卡对齐（用户 2026-07-23 要求） */
 }
 /* 卡头：标题两行 + 状态（右上） */
 .hp-brent-head {
@@ -328,7 +328,7 @@
   /* hero 左右布局在移动端改为上下布局：先安全态势，后油价卡片 */
   .hp-hero-grid { flex-direction: column; gap: 16px; }
   .hp-hero-right,
-  .hp-brent { flex: 1 1 auto; max-width: none; width: 100%; }
+  .hp-brent { flex: 1 1 auto; max-width: none; width: 100%; align-self: auto; }
   .hp-brent-price { font-size: 28px; }
   .hp-brent-chart { height: 130px; }
   .hp-chart-svg { height: 130px; }
