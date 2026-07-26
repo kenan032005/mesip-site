@@ -253,14 +253,14 @@ function proCard(r) {
 function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
-    ["countries.html", "国家"], ["pro_analysis.html", "专业机构分析"], ["reports.html", "日报"],
+    ["countries.html", "中东区域国家"], ["pro_analysis.html", "专业机构分析"], ["reports.html", "日报"],
     ["methodology.html", "评级方法"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
   const bar = $( "#topbar" );
   if (bar) {
     bar.innerHTML = `<div class="top-row">
-      <div class="brand"><b>中东地区社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
+      <div class="brand"><b>伊拉克及周边区域社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
       <div class="meta" id="topmeta">
         🕐 北京时间 <b id="clBJ">--:--:--</b>
         <span class="muted" id="updLine">更新（北京时间）：<b id="hdrUpdated">--</b></span>
