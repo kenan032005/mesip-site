@@ -253,7 +253,8 @@ function proCard(r) {
 function renderHeader(active) {
   const nav = [
     ["index.html", "首页"], ["events.html", "最新事件"], ["iraq.html", "伊拉克专题"],
-    ["countries.html", "中东区域国家"], ["pro_analysis.html", "专业机构分析"], ["reports.html", "日报"],
+    ["countries.html", "中东区域国家"], ["pro_analysis.html", "专业机构分析"],
+    ["reuters.html", "路透发现"], ["reports.html", "日报"],
     ["methodology.html", "评级方法"], ["admin.html", "后台"],
   ];
   const links = nav.map(([u, t]) => `<a href="${u}" class="${u.startsWith(active) ? "active" : ""}">${t}</a>`).join("");
