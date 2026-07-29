@@ -261,7 +261,7 @@ function renderHeader(active) {
   const bar = $( "#topbar" );
   if (bar) {
     bar.innerHTML = `<div class="top-row">
-      <div class="brand"><b>伊拉克及周边区域社会安全信息平台</b><span>Middle East Security Information Platform</span></div>
+      <div class="brand"><b>伊拉克及周边区域社会安全信息平台</b><span>Iraq and Surrounding Region Security Information Platform</span></div>
       <div class="meta" id="topmeta">
         🕐 北京时间 <b id="clBJ">--:--:--</b>
         <span class="muted" id="updLine">更新（北京时间）：<b id="hdrUpdated">--</b></span>
