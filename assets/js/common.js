@@ -240,7 +240,6 @@ function proCard(r) {
       <b>${esc(r.org || "")}</b>
       ${r.report_type ? `<span>${esc(r.report_type)}</span>` : ""}
       ${proTypeBadge(r)}
-      ${r.status === "draft" ? `<span class="tag" style="background:#fff3e0;color:#e65100">待分析</span>` : ""}
     </div>
     ${r.core_conclusion ? `<div class="sum">${esc(r.core_conclusion).slice(0, 160)}</div>` : ""}
     <div class="meta">
