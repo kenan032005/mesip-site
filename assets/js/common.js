@@ -234,13 +234,13 @@ function proTypeBadge(r) {
 }
 function wq1LevelBadge(lv) {
   const m = {
-    "direct":["高", "#b71c1c"], "A":["高", "#b71c1c"],
-    "potential":["中", "#e65100"], "B":["中", "#e65100"],
-    "indirect":["低", "#f57c00"], "C":["低", "#f57c00"],
+    "direct":["与WQ1相关性：高", "#b71c1c"], "A":["与WQ1相关性：高", "#b71c1c"],
+    "potential":["与WQ1相关性：中", "#e65100"], "B":["与WQ1相关性：中", "#e65100"],
+    "indirect":["与WQ1相关性：低", "#f57c00"], "C":["与WQ1相关性：低", "#f57c00"],
     "none":["暂无明显影响", "#9e9e9e"], "D":["暂无明显影响", "#9e9e9e"],
   };
-  const x = m[lv];
-  return x ? `<span class="tag" style="background:${x[1]}1a;color:${x[1]};border:1px solid ${x[1]}33">${esc(x[0])}</span>` : "";
+  const x = m[lv] || m["D"];
+  return `<span class="tag wq1-tag" style="background:${x[1]}0d;color:${x[1]};border:1px solid ${x[1]}44">${esc(x[0])}</span>`;
 }
 function proCard(r) {
   const url = `pro_report.html?id=${r.id}`;
