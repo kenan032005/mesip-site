@@ -52,12 +52,26 @@ function fmtTime(s) {
 function fmtTimeBJ(s) {
   if (!s) return "";
   s = String(s).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // 纯日期不转换
+  if (!s) return "";
+  // 纯年份 "2026"
+  if (/^\d{4}$/.test(s)) return s;
+  // 纯日期 "2026-01-30"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // ISO datetime
   var m = s.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (!m) return String(s).replace("T", " ").replace("Z", "").slice(0, 16); // 兜底
-  var Y = +m[1], Mo = +m[2] - 1, D = +m[3], h = +m[4], mi = +m[5], se = +(m[6] || 0);
-  var ms = Date.UTC(Y, Mo, D, h, mi, se) + 8 * 3600 * 1000; // 视为 UTC，加 8 小时
-  return new Date(ms).toISOString().slice(0, 19).replace("T", " "); // 北京时间墙钟
+  if (m) {
+    var Y = +m[1], Mo = +m[2] - 1, D = +m[3], h = +m[4], mi = +m[5], se = +(m[6] || 0);
+    var ms = Date.UTC(Y, Mo, D, h, mi, se) + 8 * 3600 * 1000;
+    return new Date(ms).toISOString().slice(0, 16).replace("T", " ");
+  }
+  // RFC 2822 "Wed, 22 Jul 2026 03:31:45 +0000" 等
+  var d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    var bj = new Date(d.getTime() + 8 * 3600 * 1000);
+    return bj.toISOString().slice(0, 16).replace("T", " ");
+  }
+  // 兜底
+  return String(s).replace("T", " ").replace("Z", "").slice(0, 16);
 }
 
 // 内容类型 A–G 徽章
