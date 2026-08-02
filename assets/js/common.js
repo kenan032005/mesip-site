@@ -232,20 +232,26 @@ function proTypeBadge(r) {
     ? `<span class="badge" style="background:#1a7f37;color:#fff;">全文翻译</span>`
     : `<span class="badge" style="background:#2f6feb;color:#fff;">中文摘要</span>`;
 }
+function wq1LevelBadge(lv) {
+  const m = {
+    "direct":["高", "#b71c1c"], "A":["高", "#b71c1c"],
+    "potential":["中", "#e65100"], "B":["中", "#e65100"],
+    "indirect":["低", "#f57c00"], "C":["低", "#f57c00"],
+    "none":["暂无明显影响", "#9e9e9e"], "D":["暂无明显影响", "#9e9e9e"],
+  };
+  const x = m[lv];
+  return x ? `<span class="tag" style="background:${x[1]}1a;color:${x[1]};border:1px solid ${x[1]}33">${esc(x[0])}</span>` : "";
+}
 function proCard(r) {
   const url = `pro_report.html?id=${r.id}`;
+  const region = r.related_regions || r.countries || r.regions || "";
   return `<a class="panel ecard" href="${url}" style="text-decoration:none;color:inherit;">
     <div class="ttl">${esc(r.title_zh || r.title_orig || "")}</div>
     <div class="meta">
       <b>${esc(r.org || "")}</b>
-      ${r.report_type ? `<span>${esc(r.report_type)}</span>` : ""}
-      ${proTypeBadge(r)}
-    </div>
-    ${r.core_conclusion ? `<div class="sum">${esc(r.core_conclusion).slice(0, 160)}</div>` : ""}
-    <div class="meta">
-      ${copyBadge(r.copyright_status)}
-      ${wq1Badge(r.wq1_relevance)}
-      <span class="muted">${fmtTimeBJ(r.pub_date)}</span>
+      <span class="muted">${fmtTimeBJ(r.pub_date || r.zh_pub_date)}</span>
+      ${region ? `<span class="muted">${esc(region)}</span>` : ""}
+      ${wq1LevelBadge(r.wq1_relevance)}
     </div>
   </a>`;
 }
