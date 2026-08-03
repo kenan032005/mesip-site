@@ -247,25 +247,34 @@ function proTypeBadge(r) {
     : `<span class="badge" style="background:#2f6feb;color:#fff;">中文摘要</span>`;
 }
 function wq1LevelBadge(lv) {
-  const m = {
-    "direct":["与WQ1相关性：高", "#b71c1c"], "A":["与WQ1相关性：高", "#b71c1c"],
-    "potential":["与WQ1相关性：中", "#e65100"], "B":["与WQ1相关性：中", "#e65100"],
-    "indirect":["与WQ1相关性：低", "#f57c00"], "C":["与WQ1相关性：低", "#f57c00"],
-    "none":["暂无明显影响", "#9e9e9e"], "D":["暂无明显影响", "#9e9e9e"],
+  // 新版 WQ1 标签：浅色背景 + 细边框，唯一展示标签
+  const cls = {
+    "direct": "wq1-hi", "A": "wq1-hi",
+    "potential": "wq1-mid", "B": "wq1-mid",
+    "indirect": "wq1-lo", "C": "wq1-lo",
+    "none": "wq1-no", "D": "wq1-no",
   };
-  const x = m[lv] || m["D"];
-  return `<span class="tag wq1-tag" style="background:${x[1]}0d;color:${x[1]};border:1px solid ${x[1]}44">${esc(x[0])}</span>`;
+  const txt = {
+    "direct": "与WQ1相关性：高", "A": "与WQ1相关性：高",
+    "potential": "与WQ1相关性：中", "B": "与WQ1相关性：中",
+    "indirect": "与WQ1相关性：低", "C": "与WQ1相关性：低",
+    "none": "与WQ1相关性：暂无明显影响", "D": "与WQ1相关性：暂无明显影响",
+  };
+  const l = (lv || "none");
+  return `<span class="wq1-tag ${cls[l] || "wq1-no"}">${esc(txt[l] || "与WQ1相关性：暂无明显影响")}</span>`;
 }
 function proCard(r) {
+  // 双栏列表页报告卡片：无头像、无收藏图标，纯信息层级（标题→机构→日期→地区→WQ1标签）
   const url = `pro_report.html?id=${r.id}`;
   const region = r.related_regions || r.countries || r.regions || "";
-  return `<a class="panel ecard" href="${url}" style="text-decoration:none;color:inherit;">
-    <div class="ttl">${esc(r.title_zh || r.title_orig || "")}</div>
-    <div class="meta">
-      <b>${esc(r.org || "")}</b>
-      <span class="muted">${fmtTimeBJ(r.pub_date || r.zh_pub_date)}</span>
-      ${region ? `<span class="muted">${esc(region)}</span>` : ""}
-      ${wq1LevelBadge(r.wq1_relevance)}
+  const date = r.pub_date || r.zh_pub_date || "";
+  return `<a class="report-card" href="${url}">
+    <div class="rc-title">${esc(r.title_zh || r.title_orig || "")}</div>
+    <div class="rc-meta">
+      <div class="rc-org">${esc(r.org || "")}</div>
+      ${date ? `<div class="rc-line"><span class="ic">📅</span><span>原发布：${esc(fmtTimeBJ(date))}</span></div>` : ""}
+      ${region ? `<div class="rc-line"><span class="ic">🌍</span><span>涉及地区：${esc(region)}</span></div>` : ""}
+      <div class="rc-foot">${wq1LevelBadge(r.wq1_relevance)}</div>
     </div>
   </a>`;
 }
