@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-04 20:28:59;commit=local-20260804202859;count=46;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-04 21:00:38;commit=local-20260804210038;count=39;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785864539">
+<link rel="stylesheet" href="assets/css/style.css?v=1785866437">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785864539"></script>
-<script src="assets/js/common.js?v=1785864539"></script>
-<script src="assets/js/data.js?v=1785864539"></script>
+<script src="assets/js/api.js?v=1785866437"></script>
+<script src="assets/js/common.js?v=1785866437"></script>
+<script src="assets/js/data.js?v=1785866438"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -178,11 +178,23 @@ renderHeader("pro_analysis.html");
 
 var WQ1_LABELS = {direct:"高",A:"高",potential:"中",B:"中",indirect:"低",C:"低",none:"暂无明显影响",D:"暂无明显影响"};
 
-// 内容类型标签（2026-08-04 Stage 0：如实区分，不得一律标为“全文翻译”）
+// 内容类型标签（2026-08-04 Stage 0 + Stage 3A：如实区分，不得一律标为“全文翻译”）
+// Stage 3A 起优先使用 content_mode（full_translation/detailed_report_summary/...），
+// 旧记录回退到 translation_completeness/translation_scope/report_class 推断。
+var PRO_MODE_LABELS = {
+  full_translation: "报告全文翻译",
+  selected_chapters_translation: "章节摘译",
+  executive_summary_digest: "执行摘要译介",
+  detailed_report_summary: "报告深度摘要",
+  public_content_digest: "公开内容整理",
+  expert_commentary_digest: "专家评论整理"
+};
 function proContentTypeLabel(r) {
+  var cm = (r.content_mode || "");
+  if (PRO_MODE_LABELS[cm]) return PRO_MODE_LABELS[cm];
   var tc = (r.translation_completeness || "");
   var scope = (r.translation_scope || "");
-  var cls = (r.report_class || "");
+  var cls = (r.report_class || "") || (r.document_class || "");
   if (cls === "expert_commentary") return "专家评论";
   if (tc === "complete" || scope === "full" || scope === "full_report") return "报告全文翻译";
   if (scope === "selected_chapters" || scope === "section") return "章节摘译";
@@ -195,9 +207,11 @@ function proContentTypeLabel(r) {
 
 // 内容区标题（与 proContentTypeLabel 同口径）
 function proContentSectionTitle(r) {
+  var cm = (r.content_mode || "");
+  if (PRO_MODE_LABELS[cm]) return PRO_MODE_LABELS[cm];
   var tc = (r.translation_completeness || "");
   var scope = (r.translation_scope || "");
-  var cls = (r.report_class || "");
+  var cls = (r.report_class || "") || (r.document_class || "");
   if (cls === "expert_commentary") return "专家评论";
   if (tc === "complete" || scope === "full" || scope === "full_report") return "报告全文翻译";
   if (scope === "selected_chapters" || scope === "section") return "章节摘译";
