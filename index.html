@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-04 19:50:25;commit=local-20260804195025;count=41;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-04 20:17:33;commit=local-20260804201733;count=46;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>中东社会安全态势与管理决策首页 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785862225">
-<link rel="stylesheet" href="assets/css/home.css?v=1785862225">
+<link rel="stylesheet" href="assets/css/style.css?v=1785863853">
+<link rel="stylesheet" href="assets/css/home.css?v=1785863853">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -124,9 +124,9 @@
 
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785862225"></script>
-<script src="assets/js/common.js?v=1785862225"></script>
-<script src="assets/js/data.js?v=1785862225"></script>
+<script src="assets/js/api.js?v=1785863853"></script>
+<script src="assets/js/common.js?v=1785863853"></script>
+<script src="assets/js/data.js?v=1785863853"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -331,6 +331,28 @@ function wq1Card(it) {
 
 /* 预警卡 */
 function alertCard(a) {
+  // Stage 2 预警卡：判断型标题 + WQ1核心影响 + 影响领域 + 时间窗口 + 行动建议 + 可信度
+  if (a.alert_title) {
+    var lv = a.alert_level === "critical" ? "严重" : "高";
+    var lvcls = a.alert_level === "critical" ? "hp-alert-lv-critical" : "hp-alert-lv-high";
+    var acts = (a.recommended_actions || []).slice(0, 3).map(function (x) { return "· " + x; }).join("<br>");
+    var dims = (a.affected_dimensions || []).slice(0, 4).join("、") || "—";
+    var prov = a.is_provisional ? ' <span class="hp-verify-tag">信息仍在核实中</span>' : "";
+    return '<a class="hp-alert" href="' + hpLink(a.url) + '">'
+      + '<div class="hp-alert-head">'
+      + '<span class="hp-alert-lv ' + lvcls + '">' + lv + '</span>'
+      + '<span class="hp-cred">可信度：' + hpEsc(a.confidence_level || "medium") + (a.verification_status ? (" · " + hpEsc(a.verification_status)) : "") + prov + '</span>'
+      + '<span class="hp-alert-time">' + hpEsc(a.impact_window || "") + '</span></div>'
+      + '<div class="hp-alert-title">' + hpEsc(a.alert_title) + '</div>'
+      + '<div class="hp-alert-conf"><b>WQ1核心影响：</b>' + hpEsc(a.wq1_judgment || "") + '</div>'
+      + '<div class="hp-alert-rows">'
+      + '<div><b>影响领域：</b>' + hpEsc(dims) + '</div>'
+      + '<div><b>传导路径：</b>' + hpEsc(a.transmission_path || "—") + '</div>'
+      + '<div><b>建议行动：</b><br>' + acts + '</div>'
+      + '<div class="hp-muted-sm"><b>监测指标：</b>' + hpEsc((a.monitoring_indicators || []).slice(0, 3).join("；") || "—") + '</div>'
+      + '</div></a>';
+  }
+  // 旧结构兜底
   return '<a class="hp-alert" href="' + hpLink(a.url) + '">'
     + '<div class="hp-alert-head">'
     + '<span class="hp-ev-risk ' + hpRiskClass(a.risk_level) + '">' + hpEsc(a.risk_name) + '</span>'
