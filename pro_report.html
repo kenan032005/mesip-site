@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-04 22:09:13;commit=local-20260804220913;count=40;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-04 23:07:54;commit=local-20260804230754;count=45;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785870553">
+<link rel="stylesheet" href="assets/css/style.css?v=1785874074">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785870553"></script>
-<script src="assets/js/common.js?v=1785870553"></script>
-<script src="assets/js/data.js?v=1785870553"></script>
+<script src="assets/js/api.js?v=1785874074"></script>
+<script src="assets/js/common.js?v=1785874074"></script>
+<script src="assets/js/data.js?v=1785874074"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -182,7 +182,8 @@ var WQ1_LABELS = {direct:"高",A:"高",potential:"中",B:"中",indirect:"低",C:
 // Stage 3A 起优先使用 content_mode（full_translation/detailed_report_summary/...），
 // 旧记录回退到 translation_completeness/translation_scope/report_class 推断。
 var PRO_MODE_LABELS = {
-  full_translation: "报告全文翻译",
+  full_report_translation: "报告全文翻译",
+  full_public_page_translation: "官方分析全文翻译",
   selected_chapters_translation: "章节摘译",
   executive_summary_digest: "执行摘要译介",
   detailed_report_summary: "报告深度摘要",
@@ -191,6 +192,9 @@ var PRO_MODE_LABELS = {
 };
 function proContentTypeLabel(r) {
   var cm = (r.content_mode || "");
+  if (cm === "full_public_page_translation" && (r.document_class === "expert_commentary" || (r.report_class || "") === "expert_commentary")) {
+    return "专家评论全文翻译";
+  }
   if (PRO_MODE_LABELS[cm]) return PRO_MODE_LABELS[cm];
   var tc = (r.translation_completeness || "");
   var scope = (r.translation_scope || "");
