@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-04 23:16:11;commit=local-20260804231611;count=45;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 00:27:53;commit=local-20260805002753;count=45;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785874571">
+<link rel="stylesheet" href="assets/css/style.css?v=1785878873">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785874571"></script>
-<script src="assets/js/common.js?v=1785874571"></script>
-<script src="assets/js/data.js?v=1785874571"></script>
+<script src="assets/js/api.js?v=1785878873"></script>
+<script src="assets/js/common.js?v=1785878873"></script>
+<script src="assets/js/data.js?v=1785878873"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -186,6 +186,7 @@ var PRO_MODE_LABELS = {
   full_public_page_translation: "官方分析全文翻译",
   selected_chapters_translation: "章节摘译",
   executive_summary_digest: "执行摘要译介",
+  selected_sections_digest: "选定章节概括",
   detailed_report_summary: "报告深度摘要",
   public_content_digest: "公开内容整理",
   expert_commentary_digest: "专家评论整理"
@@ -357,6 +358,20 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
   if (typeLabel) html += '<span class="tag" style="background:#2563eb1a;color:#2563eb;border:1px solid #2563eb33">' + esc(typeLabel) + '</span>';
   html += '</div></div>';
 
+  // ===== 内容范围说明（2026-08-04 Stage 3B：如实展示覆盖范围）=====
+  if (r.content_scope_note || r.summary_basis || r.source_coverage_type) {
+    var covLabel = {full_document:"全文", major_sections:"主要章节", executive_summary_only:"执行摘要",
+                    selected_sections:"选定章节", public_page_only:"公开页面"}[r.source_coverage_type] || "";
+    html += '<div class="report-sec" style="margin-bottom:18px;border-left:3px solid #94a3b8;padding-left:12px;">';
+    html += '<h2 style="font-size:15px;margin:0 0 6px;">内容范围说明</h2>';
+    if (covLabel) html += '<p class="small" style="margin:0 0 4px;"><b>覆盖范围：</b>' + esc(covLabel) + '</p>';
+    if (r.source_page_count) html += '<p class="small" style="margin:0 0 4px;"><b>原文规模：</b>' + esc(String(r.source_page_count)) + ' 页' +
+      (r.used_page_count ? '（本页内容基于其中 ' + esc(String(r.used_page_count)) + ' 页整理）' : '') + '</p>';
+    if (r.content_scope_note) html += '<p class="small" style="margin:0 0 4px;">' + esc(r.content_scope_note) + '</p>';
+    if (r.summary_basis) html += '<p class="small" style="margin:0;">' + esc(r.summary_basis) + '</p>';
+    html += '</div>';
+  }
+
   // ===== 第二部分：报告内容 =====
   var tc = (r.translation_completeness || "");
   var secTitle = "报告内容";
@@ -395,6 +410,15 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
   if (r.orig_link) {
     html += '<div class="report-sec"><h2>查看原文</h2>';
     html += '<p><a href="' + esc(r.orig_link) + '" target="_blank" rel="noopener" class="btn sm">' + esc(r.orig_link) + '</a></p>';
+    if (r.license_status || r.license_name) {
+      var licMap = {public_domain:"公有领域", open_license:"开放许可", explicit_permission:"已获授权",
+                    public_summary_only:"仅允许公开摘要", restricted:"受限内容（仅摘要）",
+                    unknown_requires_review:"许可待核", conflict_requires_review:"许可冲突待核", un_public:"联合国公开文件"};
+      html += '<p class="small muted" style="margin-top:6px;">使用说明：' +
+        esc(licMap[r.license_status] || r.license_status || "") +
+        (r.license_name ? '（' + esc(r.license_name) + '）' : '') +
+        '。本文内容按许可要求整理，版权归原发布机构所有。</p>';
+    }
     html += '</div>';
   }
 
