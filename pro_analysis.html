@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-05 09:27:16;commit=local-20260805092716;count=55;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 09:57:09;commit=local-20260805095709;count=55;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构分析 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785911235">
+<link rel="stylesheet" href="assets/css/style.css?v=1785913029">
 <style>
 /* ================= 专业机构分析列表页：双栏布局 ================= */
 .pro-main { max-width: 1600px; margin: 0 auto; }
@@ -217,9 +217,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785911235"></script>
-<script src="assets/js/common.js?v=1785911235"></script>
-<script src="assets/js/data.js?v=1785911235"></script>
+<script src="assets/js/api.js?v=1785913029"></script>
+<script src="assets/js/common.js?v=1785913029"></script>
+<script src="assets/js/data.js?v=1785913029"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -418,26 +418,36 @@ function renderPager(total, page, size) {
 
 function load() {
   API.get("/api/pro-reports?" + buildQuery()).then(d => {
-    const total = d.count || 0;
+    // 2026-08-05 分页修复：静态/动态 API 均返回 {reports, count(当前页), total(筛选后总数)}。
+    // 总数必须用 d.total；d.count 仅是当前页实际返回数量（第一页=12）。
+    const total = Number.isFinite(Number(d.total))
+      ? Number(d.total)
+      : Number(d.count || 0);
     __TOTAL = total;
     $("#count").textContent = `共 ${total} 篇专业报告`;
     $("#list").innerHTML = d.reports.length
       ? renderReportCards(d.reports)
       : `<div class="empty" style="grid-column:1/-1;">暂无符合条件的专业机构分析报告。</div>`;
+    // 当前页超出筛选后的总页数时，自动回到第 1 页
+    const pages = Math.max(1, Math.ceil(total / __PAGE_SIZE));
+    if (__PAGE > pages) { __PAGE = 1; load(); return; }
     renderPager(total, __PAGE, __PAGE_SIZE);
   }).catch(e => {
     $("#list").innerHTML = `<div class="empty" style="grid-column:1/-1;">加载失败：${esc(e.message)}</div>`;
   });
 }
 
-/* ===== 右侧机构导航 ===== */
+/* ===== 右侧机构导航（2026-08-05：规范数据 + 排序 + 展开/收起 + 明确错误）===== */
 var __INSTS_ALL = [];
 var __INST_SHOWN = 8;
 
+var __TIER_ORDER = { "Tier 1": 0, "Tier 2": 1, "Tier 3": 2, "Tier 4": 3 };
+
 function instCard(i) {
   const url = i.homepage_url || i.home_url || "#";
+  const name = i.name_zh || i.name_en || i.name || i.institution_id || "";
   return `<a class="inst-card" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
-    <p class="ic-name">${esc(i.name_zh || i.name || "")}</p>
+    <p class="ic-name">${esc(name)}</p>
     <p class="ic-intro">${esc(i.short_intro_zh || "")}</p>
     <span class="ic-link">访问官网 ↗</span>
   </a>`;
@@ -445,9 +455,14 @@ function instCard(i) {
 
 function renderInsts() {
   const list = __INSTS_ALL.slice(0, __INST_SHOWN);
-  $("#instList").innerHTML = list.length
-    ? list.map(instCard).join("")
-    : `<p class="small muted">机构信息整理中…</p>`;
+  if (!__INSTS_ALL.length) {
+    // 明确错误提示，不得长期只显示"机构信息整理中…"
+    $("#instList").innerHTML = `<p class="small muted" style="color:#b91c1c;">专业机构数据暂未成功导出</p>`;
+    $("#btnInstMore").style.display = "none";
+    return;
+  }
+  $("#btnInstMore").style.display = "";
+  $("#instList").innerHTML = list.map(instCard).join("");
   $("#btnInstMore").textContent = __INSTS_ALL.length > __INST_SHOWN
     ? "查看全部专业机构 →" : "收起机构列表 ←";
 }
@@ -464,8 +479,19 @@ $("#btnReset").onclick = () => location.reload();
 
 /* 并行加载：报告 + 机构 */
 API.get("/api/pro-institutions").then(d => {
-  const arr = d && d.institutions ? d.institutions : [];
-  __INSTS_ALL = arr.slice().sort((a, b) => (a.display_order || 99) - (b.display_order || 99));
+  // 规范结构 {institutions, count}；兼容旧裸数组
+  const arr = d && Array.isArray(d) ? d
+    : (d && Array.isArray(d.institutions) ? d.institutions : []);
+  // 排序：featured → priority_tier → display_order → name_zh
+  __INSTS_ALL = arr.slice().sort((a, b) => {
+    if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
+    const ta = __TIER_ORDER[a.priority_tier] != null ? __TIER_ORDER[a.priority_tier] : 9;
+    const tb = __TIER_ORDER[b.priority_tier] != null ? __TIER_ORDER[b.priority_tier] : 9;
+    if (ta !== tb) return ta - tb;
+    const da = Number(a.display_order) || 99, db = Number(b.display_order) || 99;
+    if (da !== db) return da - db;
+    return (a.name_zh || a.name_en || "").localeCompare(b.name_zh || b.name_en || "", "zh");
+  });
   renderInsts();
 }).catch(() => { renderInsts(); });
 
