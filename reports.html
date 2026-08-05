@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-05 10:25:53;commit=local-20260805102553;count=55;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 10:51:49;commit=local-20260805105149;count=55;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>中东局势每日观察 · 历史归档 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785914753">
+<link rel="stylesheet" href="assets/css/style.css?v=1785916309">
 <style>
   .rpt-list { max-width: 800px; margin: 0 auto; }
   .rpt-item { display: block; padding: 16px 18px; border-bottom: 1px solid #dee2e6; text-decoration: none; color: inherit; transition: background .15s; }
@@ -43,9 +43,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785914753"></script>
-<script src="assets/js/common.js?v=1785914753"></script>
-<script src="assets/js/data.js?v=1785914753"></script>
+<script src="assets/js/api.js?v=1785916309"></script>
+<script src="assets/js/common.js?v=1785916309"></script>
+<script src="assets/js/data.js?v=1785916309"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -171,6 +171,18 @@ window.__STATIC__ = true;
     }
     if (path.indexOf("/api/pro-institutions") === 0) {
       return DB.proInstitutions || { institutions: [], count: 0 };
+    }
+    if (path.indexOf("/api/decision-brief") === 0) {
+      // Stage 4（2026-08-05）：决策型日报静态路由
+      var q = new URLSearchParams(path.split("?")[1] || "");
+      var ddate = q.get("date") || "";
+      var arr = DB.decisionBriefs || [];
+      if (ddate) {
+        var hit = null;
+        for (var i = 0; i < arr.length; i++) { if (arr[i].brief_date === ddate) { hit = arr[i]; break; } }
+        return { brief: hit };
+      }
+      return { brief: arr.length ? arr[0] : null };
     }
     if (path.indexOf("/api/pro-compare") === 0) {
       return { comparable: false, count: 0, reports: [], message: "静态归档版暂不支持多机构对比，请访问原站或联系管理员。" };

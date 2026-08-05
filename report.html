@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-05 10:25:53;commit=local-20260805102553;count=55;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 10:51:49;commit=local-20260805105149;count=55;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>中东局势每日观察 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785914753">
+<link rel="stylesheet" href="assets/css/style.css?v=1785916309">
 <style>
 /* ====== 日报专业报告样式 ====== */
 .obs-wrap { max-width: 900px; margin: 0 auto; }
@@ -133,9 +133,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785914753"></script>
-<script src="assets/js/common.js?v=1785914753"></script>
-<script src="assets/js/data.js?v=1785914753"></script>
+<script src="assets/js/api.js?v=1785916309"></script>
+<script src="assets/js/common.js?v=1785916309"></script>
+<script src="assets/js/data.js?v=1785916309"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -262,6 +262,18 @@ window.__STATIC__ = true;
     if (path.indexOf("/api/pro-institutions") === 0) {
       return DB.proInstitutions || { institutions: [], count: 0 };
     }
+    if (path.indexOf("/api/decision-brief") === 0) {
+      // Stage 4（2026-08-05）：决策型日报静态路由
+      var q = new URLSearchParams(path.split("?")[1] || "");
+      var ddate = q.get("date") || "";
+      var arr = DB.decisionBriefs || [];
+      if (ddate) {
+        var hit = null;
+        for (var i = 0; i < arr.length; i++) { if (arr[i].brief_date === ddate) { hit = arr[i]; break; } }
+        return { brief: hit };
+      }
+      return { brief: arr.length ? arr[0] : null };
+    }
     if (path.indexOf("/api/pro-compare") === 0) {
       return { comparable: false, count: 0, reports: [], message: "静态归档版暂不支持多机构对比，请访问原站或联系管理员。" };
     }
@@ -306,9 +318,123 @@ API.get("/api/report/" + encodeURIComponent(dateParam || "")).then(d => {
   if (!r) { $("#report").innerHTML = `<div class="empty">该日期暂无日报。<br><br><a href="reports.html">查看所有日报</a></div>`; return; }
   _reportData = r;
   _md = r.markdown || "";
-  $("#report").innerHTML = renderReport(r);
-  setupDetailToggles();
+  // Stage 4（2026-08-05）：优先渲染「领导决策版」（decision_briefs），无则回退旧版
+  const bDate = dateParam || today;
+  API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
+    const brief = dd && dd.brief;
+    if (brief) {
+      $("#report").innerHTML = renderDecisionBrief(brief, r);
+    } else {
+      $("#report").innerHTML = renderReport(r);
+      setupDetailToggles();
+    }
+  }).catch(() => {
+    $("#report").innerHTML = renderReport(r);
+    setupDetailToggles();
+  });
 }).catch(e => { $("#report").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+
+// ====== 领导决策版渲染（Stage 4）======
+var __LvCn = {rising:"上升", stable_high:"高位趋稳", stable:"持平", easing:"缓和", volatile:"波动", insufficient_data:"数据不足"};
+var __LvAlert = {critical:"严重", high:"高", watch:"关注", info:"提示"};
+
+function renderDecisionBrief(b, oldR) {
+  const es = oldR ? (oldR.executive_summary || {}) : {};
+  const matrix = b.wq1_impact_matrix || {};
+  const scenarios = b.scenario_assessment || [];
+  const actions = b.recommended_actions || [];
+  const alerts = b.active_alert_ids || [];
+  const changes = b.key_change_items || [];
+  const regional = (typeof b.regional_assessment === "string" && b.regional_assessment) ? {} : (b.regional_assessment || {});
+  let h = "";
+  h += `<div class="obs-header">
+    <h1>${esc(oldR ? oldR.title : ("中东社会安全形势日报"))}（领导决策版）</h1>
+    <p class="sub">面向WQ1领导层的决策支持简报 · 判断/事实/观点/建议分离</p>
+    <div class="obs-meta">
+      <div>📅 报告日期：<b>${esc(b.brief_date || "")}</b></div>
+      <div>⏱ 信息窗口：<b>${esc((b.period_start||"").slice(0,16))} → ${esc((b.period_end||"").slice(0,16))}</b></div>
+      <div>🔄 趋势：<b>${esc(b.overall_risk_trend || "")}</b></div>
+      <div>🏷 状态：<b>${esc(b.quality_gate || "")}</b></div>
+    </div>
+  </div>`;
+  // 一、核心判断
+  h += `<div class="exec-card"><h2>一、今日核心判断</h2><div class="total-line">${esc(b.executive_judgment || "")}</div></div>`;
+  // 二、重点风险预警
+  h += `<div class="exec-card"><h2>二、重点风险预警（${alerts.length}条）</h2>`;
+  if (alerts.length) {
+    h += `<ul>${alerts.map(a => `<li><b>[${esc(__LvAlert[a.level] || a.level || "高")}]</b> ${esc(a.title || a)}</li>`).join("")}</ul>`;
+    h += `<p class="small muted">预警与 Stage 2 引擎完全一致，详见原文链接。</p>`;
+  } else {
+    h += `<p><b>当前未发现需要升级处置的重大外部风险。</b></p>`;
+  }
+  h += `</div>`;
+  // 三、关键变化
+  h += `<div class="exec-card"><h2>三、今日关键变化</h2>`;
+  if (changes.length) {
+    h += `<ul>${changes.map(c => `<li><b>${esc(c.change_type || c.risk_name || "")}</b>：${esc(c.risk_name || c.what_happened || c.change_reason || "")}</li>`).join("")}</ul>`;
+  } else {
+    h += `<p>本周期无发生实质变化的关键事项。</p>`;
+  }
+  h += `</div>`;
+  // 四、区域态势
+  h += `<div class="exec-card"><h2>四、区域态势研判</h2>`;
+  if (typeof b.regional_assessment === "string" && b.regional_assessment) {
+    h += `<p>${esc(b.regional_assessment)}</p>`;
+  } else {
+    h += `<ul>${Object.entries(regional).map(([k,v]) => `<li><b>${esc(k)}：</b>${esc(v)}</li>`).join("")}</ul>`;
+  }
+  h += `</div>`;
+  // 五、WQ1 影响矩阵
+  h += `<div class="exec-card"><h2>五、WQ1 影响矩阵</h2><table class="tbl"><tr><th>维度</th><th>当前</th><th>趋势</th><th>说明</th></tr>`;
+  Object.entries(matrix).forEach(([k,v]) => {
+    h += `<tr><td>${esc(v.dimension || k)}</td><td><b>${esc(v.current_level || "")}</b></td><td>${esc(__LvCn[v.trend] || v.trend || "")}</td><td>${esc(v.reason || "")}</td></tr>`;
+  });
+  h += `</table></div>`;
+  // 六、情景
+  h += `<div class="exec-card"><h2>六、未来24-72小时情景</h2>`;
+  if (scenarios.length) {
+    scenarios.forEach(s => {
+      h += `<div class="scenario"><b>${esc(s.scenario_name || "")}</b>（可信度：${esc(s.confidence_level || "")}）`;
+      if (s.scenario_description) h += `<div>${esc(s.scenario_description)}</div>`;
+      if (s.trigger_conditions && s.trigger_conditions.length) h += `<div class="small muted">触发条件：${esc(s.trigger_conditions.join("；"))}</div>`;
+      if (s.wq1_impacts) h += `<div class="small muted">对WQ1影响：${esc(s.wq1_impacts)}</div>`;
+      h += `</div>`;
+    });
+  } else {
+    h += `<p>当前证据不足，暂不生成情景判断。</p>`;
+  }
+  h += `</div>`;
+  // 七、建议
+  h += `<div class="exec-card"><h2>七、建议和监测事项</h2><ul>`;
+  if (actions.length) {
+    actions.forEach(a => { h += `<li><b>[${esc(a.priority || "")}]</b> ${esc(a.action || "")}</li>`; });
+  } else {
+    h += `<li>暂无需要采取的具体行动，维持常规监测。</li>`;
+  }
+  h += `</ul></div>`;
+  // 八、专业机构观点（从 evidence map 找）
+  const em = b.brief_evidence_map || [];
+  const proRefs = em.filter(e => e.evidence_type === "pro_report");
+  h += `<div class="exec-card"><h2>八、专业机构观点</h2>`;
+  if (proRefs.length) {
+    h += `<p class="small muted">本周期引用 ${proRefs.length} 篇 Stage 3 合格专业内容（证据映射可追溯）。</p>`;
+  } else {
+    h += `<p>本周期未引用专业机构观点。</p>`;
+  }
+  h += `</div>`;
+  // 九、来源
+  const links = b.source_links || [];
+  h += `<div class="exec-card"><h2>九、信息来源</h2>`;
+  if (links.length) {
+    h += `<ul>${links.slice(0,15).map(l => `<li>${esc(l.source || "")}：<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc((l.url||"").slice(0,60))}</a></li>`).join("")}</ul>`;
+  } else {
+    h += `<p class="small muted">来源详见旧版日报「主要信息来源」。</p>`;
+  }
+  h += `</div>`;
+  h += `<p class="small muted" style="margin-top:14px;">领导决策版由 MESIP Stage 4 引擎生成：事实来自 Stage 1 治理事件、预警来自 Stage 2 引擎、专业观点来自 Stage 3 合格内容；MESIP判断与建议为平台研判，非官方结论。附 <a href="#" onclick="document.getElementById('legacyReport').style.display='block';return false;">查看旧版日报</a></p>`;
+  h += `<div id="legacyReport" style="display:none;margin-top:12px;">${renderReport(oldR)}</div>`;
+  return h;
+}
 
 function goDate() {
   const d = document.getElementById("datePicker").value;
