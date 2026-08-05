@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-05 14:34:19;commit=local-20260805143419;count=55;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 14:51:28;commit=local-20260805145128;count=55;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>中东局势每日观察 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785929659">
+<title>伊拉克及周边区域社会安全形势日报 · MESIP</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1785930687">
 <style>
 /* ====== 日报专业报告样式 ====== */
 .obs-wrap { max-width: 900px; margin: 0 auto; }
@@ -133,9 +133,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785929659"></script>
-<script src="assets/js/common.js?v=1785929659"></script>
-<script src="assets/js/data.js?v=1785929659"></script>
+<script src="assets/js/api.js?v=1785930687"></script>
+<script src="assets/js/common.js?v=1785930687"></script>
+<script src="assets/js/data.js?v=1785930687"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -318,13 +318,13 @@ API.get("/api/report/" + encodeURIComponent(dateParam || "")).then(d => {
   if (!r) { $("#report").innerHTML = `<div class="empty">该日期暂无日报。<br><br><a href="reports.html">查看所有日报</a></div>`; return; }
   _reportData = r;
   _md = r.markdown || "";
-  // Stage 4 V2（2026-08-05）：默认展示「V2 完整专业日报」（full_report_html，与邮件同源）；
-  // 无 V2 时回退「V1 领导决策版」；仍无则回退旧版新闻日报。
+  // 决策型日报（decision_briefs）：有 V2 完整日报则默认展示；
+  // 无则回退 V1 简报，仍无则回退旧版新闻日报（均为后台降级逻辑，无公开版本入口）。
   const bDate = dateParam || today;
   API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
     const brief = dd && dd.brief;
     if (brief && brief.content_version === "v2" && brief.full_report_html) {
-      $("#report").innerHTML = renderV2Full(brief);
+      $("#report").innerHTML = brief.full_report_html;
       setupDetailToggles();
     } else if (brief) {
       $("#report").innerHTML = renderDecisionBrief(brief, r);
@@ -339,62 +339,7 @@ API.get("/api/report/" + encodeURIComponent(dateParam || "")).then(d => {
   });
 }).catch(e => { $("#report").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
 
-// ====== V2 完整专业日报（Stage 4 V2，2026-08-05）======
-// 服务端渲染的完整日报 HTML（full_report_html）与邮件主文同源；
-// 页面仅注入样式与版本切换入口，不改动正文结构。
-function renderV2Full(b) {
-  const oldLink = `<a href="javascript:void(0)" onclick="showV1Brief()" style="margin-right:14px;">查看历史V1简报</a>`;
-  const oldReportLink = `<a href="javascript:void(0)" onclick="showOldReport()">查看旧版新闻日报</a>`;
-  return `<div id="v2brief">
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13px;color:#475569;display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
-      <span style="font-weight:700;color:#1e40af;">V2 完整专业日报</span>
-      <span>brief_id: ${esc(b.brief_id || "")}</span>
-      <span>生成: ${esc(b.render_version || "")}</span>
-      ${oldLink}${oldReportLink}
-    </div>
-    <div id="v2body">${b.full_report_html || ""}</div>
-    <div id="v1body" style="display:none;"></div>
-    <div id="oldbody" style="display:none;"></div>
-  </div>`;
-}
-
-// 切换：V1 领导决策版（缓存数据仍在）
-function showV1Brief() {
-  const v1 = document.getElementById("v1body");
-  const v2 = document.getElementById("v2body");
-  const old = document.getElementById("oldbody");
-  if (v1.innerHTML) {
-    v1.style.display = "block"; v2.style.display = "none"; old.style.display = "none";
-    return;
-  }
-  // 从 API 拉 V1 数据渲染
-  const bDate = getQS("d") || new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
-  API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
-    const brief = dd && dd.brief;
-    if (brief && _reportData) {
-      v1.innerHTML = renderDecisionBrief(brief, _reportData);
-    } else {
-      v1.innerHTML = `<div class="empty">该日期无 V1 简报数据。</div>`;
-    }
-    v1.style.display = "block"; v2.style.display = "none"; old.style.display = "none";
-  });
-}
-
-// 切换：旧版新闻日报
-function showOldReport() {
-  const old = document.getElementById("oldbody");
-  const v1 = document.getElementById("v1body");
-  const v2 = document.getElementById("v2body");
-  if (old.innerHTML) {
-    old.style.display = "block"; v1.style.display = "none"; v2.style.display = "none";
-    return;
-  }
-  old.innerHTML = _reportData ? renderReport(_reportData) : `<div class="empty">无旧版数据。</div>`;
-  setupDetailToggles();
-  old.style.display = "block"; v1.style.display = "none"; v2.style.display = "none";
-}
-
-// ====== 领导决策版渲染（Stage 4）======
+// ====== 决策型日报渲染（后台降级）======
 var __LvCn = {rising:"上升", stable_high:"高位趋稳", stable:"持平", easing:"缓和", volatile:"波动", insufficient_data:"数据不足"};
 var __LvAlert = {critical:"严重", high:"高", watch:"关注", info:"提示"};
 
@@ -408,8 +353,8 @@ function renderDecisionBrief(b, oldR) {
   const regional = (typeof b.regional_assessment === "string" && b.regional_assessment) ? {} : (b.regional_assessment || {});
   let h = "";
   h += `<div class="obs-header">
-    <h1>${esc(oldR ? oldR.title : ("中东社会安全形势日报"))}（领导决策版）</h1>
-    <p class="sub">面向WQ1领导层的决策支持简报 · 判断/事实/观点/建议分离</p>
+    <h1>${esc(oldR ? oldR.title : "伊拉克及周边区域社会安全形势日报")}</h1>
+    
     <div class="obs-meta">
       <div>📅 报告日期：<b>${esc(b.brief_date || "")}</b></div>
       <div>⏱ 信息窗口：<b>${esc((b.period_start||"").slice(0,16))} → ${esc((b.period_end||"").slice(0,16))}</b></div>
@@ -491,7 +436,7 @@ function renderDecisionBrief(b, oldR) {
     h += `<p class="small muted">来源详见旧版日报「主要信息来源」。</p>`;
   }
   h += `</div>`;
-  h += `<p class="small muted" style="margin-top:14px;">领导决策版由 MESIP Stage 4 引擎生成：事实来自 Stage 1 治理事件、预警来自 Stage 2 引擎、专业观点来自 Stage 3 合格内容；MESIP判断与建议为平台研判，非官方结论。附 <a href="#" onclick="document.getElementById('legacyReport').style.display='block';return false;">查看旧版日报</a></p>`;
+
   h += `<div id="legacyReport" style="display:none;margin-top:12px;">${renderReport(oldR)}</div>`;
   return h;
 }

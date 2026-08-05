@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-08-05 14:34:19;commit=local-20260805143419;count=55;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-08-05 14:51:28;commit=local-20260805145128;count=55;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>中东局势每日观察 · 历史归档 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1785929659">
+<title>伊拉克及周边区域社会安全形势日报 · 历史归档 · MESIP</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1785930687">
 <style>
   .rpt-list { max-width: 800px; margin: 0 auto; }
   .rpt-item { display: block; padding: 16px 18px; border-bottom: 1px solid #dee2e6; text-decoration: none; color: inherit; transition: background .15s; }
@@ -31,7 +31,7 @@
 
 <div class="container rpt-list">
   <div class="rpt-header">
-    <h1>《中东局势每日观察》</h1>
+    <h1>《伊拉克及周边区域社会安全形势日报》</h1>
     <p class="sub">中东社会安全、地缘政治与企业运营风险分析 · 历史归档</p>
   </div>
 
@@ -43,9 +43,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1785929659"></script>
-<script src="assets/js/common.js?v=1785929659"></script>
-<script src="assets/js/data.js?v=1785929659"></script>
+<script src="assets/js/api.js?v=1785930687"></script>
+<script src="assets/js/common.js?v=1785930687"></script>
+<script src="assets/js/data.js?v=1785930687"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -227,7 +227,7 @@ API.get("/api/reports").then(d => {
   }
   let html = "";
   rs.forEach((r, i) => {
-    const title = r.title || `《${Number(r.date.split("-")[1])}月${Number(r.date.split("-")[2])}日中东社会安全形势日报》`;
+    const title = r.title || `《${Number(r.date.split("-")[1])}月${Number(r.date.split("-")[2])}日伊拉克及周边区域社会安全形势日报》`;
     let summary = (r.summary || "").replace(/\s+/g, " ").trim();
     if (summary.length > 200) summary = summary.slice(0, 197) + "…";
     const cnt = r.counts || {};
