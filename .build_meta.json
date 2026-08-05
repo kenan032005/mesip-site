@@ -1,7 +1,7 @@
 {
- "build_timestamp": "2026-08-05 14:51:28",
- "build_timestamp_epoch": 1785930688,
- "git_commit": "local-20260805145128",
+ "build_timestamp": "2026-08-05 15:47:55",
+ "build_timestamp_epoch": 1785934075,
+ "git_commit": "local-20260805154755",
  "public_report_count": 55,
  "published_ids": [
   183,
@@ -61,13 +61,13 @@
   204
  ],
  "schema_version": "pro-public-v2",
- "data_generated_at": "2026-08-05T14:51:28",
+ "data_generated_at": "2026-08-05T15:47:55",
  "build_meta": {
-  "build_timestamp": "2026-08-05 14:51:27",
-  "build_timestamp_epoch": 1785930687,
-  "git_commit": "local-20260805145127",
+  "build_timestamp": "2026-08-05 15:47:54",
+  "build_timestamp_epoch": 1785934074,
+  "git_commit": "local-20260805154754",
   "public_report_count": 55,
-  "data_generated_at": "2026-08-05T14:51:27",
+  "data_generated_at": "2026-08-05T15:47:54",
   "schema_version": "pro-public-v2"
  }
 }
