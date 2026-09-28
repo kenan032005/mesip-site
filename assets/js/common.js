@@ -302,6 +302,16 @@ function renderHeader(active) {
   if (!window.__clockTimer__) {
     window.__clockTimer__ = setInterval(tickClock, 1000);
   }
+  // 统一填充右上角"更新时间（北京时间）"：此前仅 index.html 在各自加载首页数据后调用
+  // setUpdated，导致 events/countries/reports 等页面长期显示 "--"。现于共享页头渲染时
+  // 拉取一次首页数据并填充，覆盖所有页面（与 index 既有调用幂等，无副作用）。
+  try {
+    if (typeof API !== "undefined" && API && typeof API.get === "function") {
+      API.get("/api/home").then(function (hd) {
+        if (hd && hd.generated_at_bj) setUpdated(hd.generated_at_bj);
+      }).catch(function () {});
+    }
+  } catch (e) {}
 }
 
 function tickClock() {
