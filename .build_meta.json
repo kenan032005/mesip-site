@@ -1,7 +1,7 @@
 {
- "build_timestamp": "2026-10-06 14:51:05",
- "build_timestamp_epoch": 1791287465,
- "git_commit": "local-20261006145105",
+ "build_timestamp": "2026-10-06 15:36:22",
+ "build_timestamp_epoch": 1791290182,
+ "git_commit": "local-20261006153622",
  "public_report_count": 71,
  "published_ids": [
   183,
@@ -77,7 +77,7 @@
   10385
  ],
  "schema_version": "pro-public-v2",
- "data_generated_at": "2026-10-06T14:51:05",
+ "data_generated_at": "2026-10-06T15:36:22",
  "build_meta": {
   "build_timestamp": "2026-10-06 14:51:03",
   "build_timestamp_epoch": 1791287463,
