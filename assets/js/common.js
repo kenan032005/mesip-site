@@ -30,8 +30,86 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// ---- F16 最小隔离（2026-10-23）----
+// 背景：report.html 把 decision_briefs.full_report_html 直接写入 innerHTML，
+// 上游未做 HTML 白名单净化；首页部分链接未约束协议；common.js 的
+// Number(risk)||1 / Number(row.level)||1 会把 null/NaN/超范围值显示成"低风险"。
+// 这里在客户端加一层**纵深防御**：不替代上游净化，但保证即使上游被污染，
+// 公开页面也不会执行脚本、不会把未知显示成低风险。
+var _SG_ALLOWED_TAGS = ["P","BR","B","STRONG","I","EM","U","S","SPAN","DIV","SECTION","ARTICLE",
+  "H1","H2","H3","H4","H5","H6","UL","OL","LI","DL","DT","DD","TABLE","THEAD","TBODY","TFOOT",
+  "TR","TD","TH","CAPTION","COLGROUP","COL","BLOCKQUOTE","PRE","CODE","HR","A","IMG","FIGURE",
+  "FIGCAPTION","SMALL","SUB","SUP","MARK","ABBR","CITE","Q","TIME","DETAILS","SUMMARY","FONT"];
+var _SG_ALLOWED_ATTR = {
+  "*": ["class","id","style","title","lang","dir","align","colspan","rowspan","width","height","valign"],
+  "A": ["href","target","rel","name"],
+  "IMG": ["src","alt","loading","decoding"],
+  "OL": ["start","type","reversed"],
+  "TD": ["colspan","rowspan","headers","scope"],
+  "TH": ["colspan","rowspan","headers","scope","abbr"],
+  "TIME": ["datetime"]
+};
+var _SG_URL_OK = /^(https?:|mailto:|#|\/|\.\/|\.\.\/|[^:]*$)/i;
+
+function _sgSanitizeNode(node) {
+  var kids = Array.prototype.slice.call(node.childNodes);
+  for (var i = 0; i < kids.length; i++) {
+    var c = kids[i];
+    if (c.nodeType === 3) continue;               // 文本节点
+    if (c.nodeType !== 1) { node.removeChild(c); continue; }  // 注释/CDATA 等
+    var tag = c.tagName.toUpperCase();
+    if (_SG_ALLOWED_TAGS.indexOf(tag) < 0) {
+      // 不白名单标签：保留其文本内容，去掉标签与属性
+      var txt = document.createTextNode(c.textContent || "");
+      node.replaceChild(txt, c);
+      continue;
+    }
+    var allow = (_SG_ALLOWED_ATTR[tag] || []).concat(_SG_ALLOWED_ATTR["*"]);
+    var attrs = Array.prototype.slice.call(c.attributes);
+    for (var j = 0; j < attrs.length; j++) {
+      var nm = attrs[j].name.toLowerCase(), vv = attrs[j].value || "";
+      if (allow.indexOf(nm) < 0) { c.removeAttribute(attrs[j].name); continue; }
+      if ((nm === "href" || nm === "src") && !_SG_URL_OK.test(vv.trim())) c.removeAttribute(attrs[j].name);
+      if (nm === "style" && /expression|javascript:|behavior|@import/i.test(vv)) c.removeAttribute("style");
+    }
+    if (tag === "A") { c.setAttribute("rel", "noopener"); if (!c.getAttribute("target")) c.setAttribute("target", "_blank"); }
+    _sgSanitizeNode(c);
+  }
+}
+
+function safeHtml(html) {
+  """把外部 HTML 净化后返回安全 DOM 片段（白名单标签/属性 + 协议约束）。"""
+  try {
+    var tpl = document.createElement("template");
+    tpl.innerHTML = html == null ? "" : String(html);
+    _sgSanitizeNode(tpl.content);
+    return tpl.content;
+  } catch (e) {
+    return document.createTextNode(String(html == null ? "" : html));
+  }
+}
+
+function safeSetHtml(el, html) {
+  """安全地把外部 HTML 写入元素（替代直接 innerHTML 赋值）。"""
+  if (!el) return;
+  try {
+    el.textContent = "";
+    el.appendChild(safeHtml(html));
+  } catch (e) {
+    el.textContent = String(html == null ? "" : html);
+  }
+}
+
+// F16：未知/缺失/超范围风险等级一律显示"未知"，不得默认低风险
+function riskNum(risk) {
+  var n = Number(risk);
+  if (!isFinite(n) || n < 1 || n > 4) return null;
+  return Math.floor(n);
+}
+
 function riskBadge(risk) {
-  const r = Number(risk) || 1;
+  const r = riskNum(risk);
+  if (r === null) return `<span class="badge" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1">未知</span>`;
   return `<span class="badge risk-${r}">${RISK_NAME[r] || "低风险"}</span>`;
 }
 
@@ -191,7 +269,8 @@ function _parseDrivers(row) {
   return Array.isArray(d) ? d : [];
 }
 function countryRiskCard(row, countryName) {
-  const lvl = Number(row.level) || 1;
+  // F16 修复（2026-10-23）：未知/超范围等级显示"未知"，不再默认 1（低风险）
+  const lvl = riskNum(row.level);
   const total = row.total != null ? row.total : 0;
   const drivers = _parseDrivers(row);
   const regional = (row.scope && row.scope !== "全国");

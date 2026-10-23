@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 18:31:21;commit=local-20261023183121;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 19:06:06;commit=local-20261023190606;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>伊拉克及周边区域社会安全形势日报 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792769481">
+<link rel="stylesheet" href="assets/css/style.css?v=1792771566">
 <style>
 /* ====== 日报专业报告样式 ====== */
 .obs-wrap { max-width: 900px; margin: 0 auto; }
@@ -135,9 +135,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792769481"></script>
-<script src="assets/js/common.js?v=1792769481"></script>
-<script src="assets/js/data.js?v=1792769481"></script>
+<script src="assets/js/api.js?v=1792771566"></script>
+<script src="assets/js/common.js?v=1792771566"></script>
+<script src="assets/js/data.js?v=1792771566"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -375,7 +375,8 @@ _resolveDate(function (dateParam, isDefault) {
     API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
       const brief = dd && dd.brief;
       if (brief && brief.content_version === "v2" && brief.full_report_html) {
-        $("#report").innerHTML = brief.full_report_html;
+        // F16 最小隔离（2026-10-23）：外部 HTML 先过白名单净化再写入
+      safeSetHtml($("#report"), brief.full_report_html);
         // F12：屏幕用 V2 完整版，复制也必须用同一版本
         _md = _canonicalTextOf(brief, r);
         _displayVersion = "v2_full_html";

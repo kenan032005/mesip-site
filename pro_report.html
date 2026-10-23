@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 18:31:21;commit=local-20261023183121;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 19:06:06;commit=local-20261023190606;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792769481">
+<link rel="stylesheet" href="assets/css/style.css?v=1792771566">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792769481"></script>
-<script src="assets/js/common.js?v=1792769481"></script>
-<script src="assets/js/data.js?v=1792769481"></script>
+<script src="assets/js/api.js?v=1792771566"></script>
+<script src="assets/js/common.js?v=1792771566"></script>
+<script src="assets/js/data.js?v=1792771566"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -394,6 +394,31 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
       (r.used_page_count ? '（本页内容基于其中 ' + esc(String(r.used_page_count)) + ' 页整理）' : '') + '</p>';
     if (r.content_scope_note) html += '<p class="small" style="margin:0 0 4px;">' + esc(r.content_scope_note) + '</p>';
     if (r.summary_basis) html += '<p class="small" style="margin:0;">' + esc(r.summary_basis) + '</p>';
+    // ===== F14 最小隔离（2026-10-23）：许可核验状态如实标注 =====
+    // 背景：id=183 等记录 license_status='open_license'（机构默认假设）、
+    // license_link 与 license_checked_at 均为空，却带 full_translation_allowed=1
+    // 与 license_review_status='approved'，页面会被读成"已核验许可"。
+    // 这里不做权限判定，只把「是否核验、核验时间、依据」如实显示出来。
+    var licChecked = (r.license_checked_at || r.translation_verified_at || "");
+    var licStatus = (r.license_status || "");
+    var assumed = (!licChecked) || /默认|假设|assum/i.test(licStatus) || /默认|假设|assum/i.test(String(r.license_name || ""));
+    if (licStatus || r.license_name || r.full_translation_allowed) {
+      html += '<div class="report-sec" style="margin-bottom:18px;border-left:3px solid #d97706;padding-left:12px;">';
+      html += '<h2 style="font-size:15px;margin:0 0 6px;">许可与再利用状态</h2>';
+      if (assumed) {
+        html += '<p class="small" style="margin:0 0 4px;color:#92400e;"><b>⚠ 许可未核验：</b>'
+          + '本页未记录针对原始机构的许可核查时间与许可链接；当前状态为'
+          + esc(licStatus ? ('「' + licStatus + '」') : '未填写')
+          + '，属机构默认假设，不构成已授权全文转载或全文翻译的凭证。</p>';
+      } else {
+        html += '<p class="small" style="margin:0 0 4px;"><b>许可状态：</b>' + esc(licStatus || '—')
+          + (r.license_name ? ('（' + esc(r.license_name) + '）') : '')
+          + ' · 核验时间 ' + esc(String(licChecked).slice(0, 16)) + '</p>';
+      }
+      if (r.license_link) html += '<p class="small" style="margin:0;"><b>许可链接：</b><a href="' + esc(r.license_link) + '" target="_blank" rel="noopener">' + esc(r.license_link) + '</a></p>';
+      else html += '<p class="small" style="margin:0;color:#92400e;"><b>许可链接：</b>未提供</p>';
+      html += '</div>';
+    }
     html += '</div>';
   }
 
