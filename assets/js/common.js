@@ -77,8 +77,8 @@ function _sgSanitizeNode(node) {
   }
 }
 
+// 把外部 HTML 净化后返回安全 DOM 片段（白名单标签/属性 + 协议约束）。
 function safeHtml(html) {
-  """把外部 HTML 净化后返回安全 DOM 片段（白名单标签/属性 + 协议约束）。"""
   try {
     var tpl = document.createElement("template");
     tpl.innerHTML = html == null ? "" : String(html);
@@ -89,8 +89,8 @@ function safeHtml(html) {
   }
 }
 
+// 安全地把外部 HTML 写入元素（替代直接 innerHTML 赋值）。
 function safeSetHtml(el, html) {
-  """安全地把外部 HTML 写入元素（替代直接 innerHTML 赋值）。"""
   if (!el) return;
   try {
     el.textContent = "";

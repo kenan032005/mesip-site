@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 20:56:51;commit=local-20261023205651;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 21:41:55;commit=local-20261023214155;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>路透社内容发现（多渠道） · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792778210">
+<link rel="stylesheet" href="assets/css/style.css?v=1792780915">
 <style>
   .rt-page { max-width: 1020px; }
   .rt-note {
@@ -73,9 +73,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792778210"></script>
-<script src="assets/js/common.js?v=1792778210"></script>
-<script src="assets/js/data.js?v=1792778210"></script>
+<script src="assets/js/api.js?v=1792780915"></script>
+<script src="assets/js/common.js?v=1792780915"></script>
+<script src="assets/js/data.js?v=1792780915"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -150,6 +150,8 @@ window.__STATIC__ = true;
     if (p.get("wq1") === "1") arr = arr.filter(function (e) {
       return (e.module_tags || []).indexOf("wq1") >= 0;
     });
+    // F10 修复：状态过滤，使卡片链接（status=published）落地集合与卡片计数口径一致
+    var st = p.get("status"); if (st) arr = arr.filter(function (e) { return e.status === st; });
     var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
     var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
     if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });

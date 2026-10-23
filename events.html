@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 20:56:51;commit=local-20261023205651;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 21:41:55;commit=local-20261023214155;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>最新安全事件 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792778210">
+<link rel="stylesheet" href="assets/css/style.css?v=1792780915">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -38,9 +38,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792778210"></script>
-<script src="assets/js/common.js?v=1792778210"></script>
-<script src="assets/js/data.js?v=1792778210"></script>
+<script src="assets/js/api.js?v=1792780915"></script>
+<script src="assets/js/common.js?v=1792780915"></script>
+<script src="assets/js/data.js?v=1792780915"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -115,6 +115,8 @@ window.__STATIC__ = true;
     if (p.get("wq1") === "1") arr = arr.filter(function (e) {
       return (e.module_tags || []).indexOf("wq1") >= 0;
     });
+    // F10 修复：状态过滤，使卡片链接（status=published）落地集合与卡片计数口径一致
+    var st = p.get("status"); if (st) arr = arr.filter(function (e) { return e.status === st; });
     var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
     var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
     if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });
@@ -235,6 +237,21 @@ function _normDateTime(v) {
   // 已是完整时间（含时分秒）则原样使用；仅日期则补 00:00:00
   return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v) ? v : (v + " 00:00:00");
 }
+// URL 参数在脚本执行早期捕获（location.search 不会变），供 buildQuery 兜底使用
+const _URL_PARAMS = new URLSearchParams(location.search);
+// 时间参数的精确值必须单独留存：日期输入控件（type=date）只保留到"日"，
+// 若直接用表单值会把卡片链接的 "YYYY-MM-DD HH:MM:SS" 退化成 "… 00:00:00"，
+// 导致 24 小时窗口被放大成整天（2026-10-23 实测）。
+const _URL_EXACT = {
+  from: _URL_PARAMS.get("from") || "",
+  to: _URL_PARAMS.get("to") || ""
+};
+// 用户是否手动改过筛选控件：未改过 → URL 参数为准；改过 → 表单为准
+let _userEdited = false;
+
+// 把 URL 参数回填到筛选控件。
+// 必须在下拉 option 填充完成之后调用：否则给 select 赋一个尚不存在的 value 会静默失败，
+// 导致"看起来初始化了、实际过滤条件为空"（2026-10-23 实测踩坑）。
 function _initFromURL() {
   const p = new URLSearchParams(location.search);
   const map = { country: "#f-country", risk: "#f-risk", category: "#f-cat", q: "#f-q" };
@@ -250,21 +267,28 @@ function _initFromURL() {
   if (rm && $("#f-riskmin")) $("#f-riskmin").value = rm;
   return p;
 }
-const _URL_PARAMS = _initFromURL();
 
 function buildQuery() {
-  const p = new URLSearchParams(_URL_PARAMS.toString());
+  // 用户未操作过控件时，URL 参数作为兜底；否则只看表单，避免清空条件后被旧 URL 参数粘回
+  const up = _userEdited ? new URLSearchParams() : _URL_PARAMS;
+  const p = new URLSearchParams();
   const c = $("#f-country").value, r = $("#f-risk").value, cat = $("#f-cat").value;
   const f = $("#f-from").value, t = $("#f-to").value, q = $("#f-q").value;
   const rm = $("#f-riskmin") ? $("#f-riskmin").value : "";
-  if (c) p.set("country", c); else p.delete("country");
-  if (r) p.set("risk", r); else p.delete("risk");
-  if (rm) p.set("risk_min", rm); else p.delete("risk_min");
-  if (cat) p.set("category", cat); else p.delete("category");
-  if (f) p.set("from", _normDateTime(f)); else p.delete("from");
-  if (t) p.set("to", _normDateTime(t).replace("00:00:00", "23:59:59")); else p.delete("to");
-  if ($("#f-china").checked) p.set("china", "1"); else p.delete("china");
-  if (q) p.set("q", q); else p.delete("q");
+  // F10：表单为空时保留 URL 上的同名参数，绝不能 delete（否则卡片链接的筛选条件被抹掉）
+  if (c) p.set("country", c); else if (up.get("country")) p.set("country", up.get("country"));
+  if (r) p.set("risk", r); else if (up.get("risk")) p.set("risk", up.get("risk"));
+  if (rm) p.set("risk_min", rm); else if (up.get("risk_min")) p.set("risk_min", up.get("risk_min"));
+  if (cat) p.set("category", cat); else if (up.get("category")) p.set("category", up.get("category"));
+  // 时间：优先用 URL 上的精确值，避免日期控件把时分秒截断掉
+  if (_URL_EXACT.from) p.set("from", _URL_EXACT.from);
+  else if (f) p.set("from", _normDateTime(f));
+  if (_URL_EXACT.to) p.set("to", _URL_EXACT.to);
+  else if (t) p.set("to", _normDateTime(t).replace("00:00:00", "23:59:59"));
+  if ($("#f-china").checked) p.set("china", "1"); else if (up.get("china")) p.set("china", up.get("china"));
+  if (q) p.set("q", q); else if (up.get("q")) p.set("q", up.get("q"));
+  // 卡片专用口径（无对应控件）必须原样透传
+  ["iraq", "wq1", "status"].forEach(k => { if (up.get(k)) p.set(k, up.get(k)); });
   return p.toString();
 }
 
@@ -278,21 +302,35 @@ function load() {
   }).catch(e => { $("#list").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
 }
 
-API.get("/api/overview").then(d => {
-  const sel = $("#f-country");
-  d.countries.forEach(c => { const o = document.createElement("option"); o.value = c.name_zh; o.textContent = c.name_zh; sel.appendChild(o); });
-});
-
+// 1) 先同步填充类别下拉（CATEGORY_LIST 是同步常量），确保后续 value 赋值有效
 const catSel = $("#f-cat");
 CATEGORY_LIST.forEach(x => { const o = document.createElement("option"); o.value = x.code; o.textContent = x.zh; catSel.appendChild(o); });
 
+// 2) 用户一旦动了筛选控件，就切换到"表单为准"
+["#f-country", "#f-risk", "#f-cat", "#f-from", "#f-to", "#f-q", "#f-china", "#f-riskmin"].forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener("change", () => { _userEdited = true; });
+  el.addEventListener("input", () => { _userEdited = true; });
+});
+
 $("#btnSearch").onclick = load;
 $("#f-q").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
-$("#btnReset").onclick = () => { location.reload(); };
+$("#btnReset").onclick = () => { location.href = "events.html"; };
+
+// 3) 国家下拉异步填充 → 填充完成后再回填 URL 参数 → 再首次加载。
+//    顺序不可颠倒：否则 option 不存在时赋值静默失败，过滤条件丢失。
+API.get("/api/overview").then(d => {
+  const sel = $("#f-country");
+  (d.countries || []).forEach(c => {
+    const o = document.createElement("option"); o.value = c.name_zh; o.textContent = c.name_zh; sel.appendChild(o);
+  });
+  _initFromURL();
+  load();
+}).catch(() => { _initFromURL(); load(); });
 
 // 自动刷新：每 5 分钟重新拉取一次，确保显示最新新闻（后端每小时自动采集）
 setInterval(() => { load(); }, 5 * 60 * 1000);
-load();
 </script>
 </body>
 </html>
