@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 23:22:45;commit=local-20261023232245;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 23:55:08;commit=local-20261023235508;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792786965">
+<link rel="stylesheet" href="assets/css/style.css?v=1792788907">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792786965"></script>
-<script src="assets/js/common.js?v=1792786965"></script>
-<script src="assets/js/data.js?v=1792786965"></script>
+<script src="assets/js/api.js?v=1792788907"></script>
+<script src="assets/js/common.js?v=1792788907"></script>
+<script src="assets/js/data.js?v=1792788908"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -433,11 +433,30 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
   }
 
   // ===== 第二部分：报告内容 =====
+  // F14（2026-10-24）：正文按再发布裁决渲染。
+  // content_gate='restricted' 时后端已剥离 translated_blocks / content_blocks，
+  // 这里只展示平台自撰中文摘要 + 来源信息；标题也不得再写「全文翻译」，
+  // 否则等于用标题声称有全文（旧逻辑只看 translation_completeness，会误标）。
   var tc = (r.translation_completeness || "");
+  var gated = (r.content_gate === "restricted");
   var secTitle = "报告内容";
-  if (tc === "complete") secTitle = "报告全文翻译";
+  var _hasBody = !!(r.translated_blocks || r.content_blocks || r.structured_summary_blocks || r.content_zh || r.core_conclusion);
+  if (!_hasBody) secTitle = "内容范围与来源信息";
+  else if (gated) secTitle = "平台中文摘要（未展示全文译文）";
+  else if (tc === "complete") secTitle = "报告全文翻译";
   else if (tc === "partial" || r.content_blocks || r.translated_blocks) secTitle = "报告详细译介（含逐段翻译）";
   html += '<div class="report-sec"><h2>' + esc(secTitle) + '</h2>';
+  if (gated) {
+    html += '<div class="small" style="margin:0 0 12px;padding:10px 14px;border-left:3px solid #d97706;background:#fffbeb;border-radius:6px;color:#92400e;">'
+      + '<b>内容范围说明：</b>' + esc(r.content_gate_reason || "本记录未取得可查的官方许可出处，平台不公开逐段译文或译介。")
+      + ' 如需完整内容，请通过下方「查看原文」访问原始机构页面。</div>';
+  }
+  // F14 第三档：中文摘要本身不可公开（实为原文语句摘抄 / 含未替换占位符）
+  if (r.summary_gate === "blocked") {
+    html += '<div class="small" style="margin:0 0 12px;padding:10px 14px;border-left:3px solid #b91c1c;background:#fef2f2;border-radius:6px;color:#991b1b;">'
+      + '<b>摘要不公开：</b>' + esc(r.summary_gate_reason || "本记录的中文摘要不满足平台自撰摘要要求，不对外公开。")
+      + ' 请通过下方「查看原文」阅读原始报告。</div>';
+  }
   var body = "";
   if (r.translated_blocks) {
     try { body = renderTranslatedBlocks(typeof r.translated_blocks === "string" ? JSON.parse(r.translated_blocks) : r.translated_blocks); }
@@ -453,11 +472,15 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
     body = '<div style="line-height:1.8;">' + esc(r.content_zh).replace(/\\n/g,"<br>") + '</div>';
   } else if (r.core_conclusion) {
     body = '<div style="line-height:1.8;">' + esc(r.core_conclusion).replace(/\n/g,"<br>") + '</div>';
+  } else if (r.content_gate === "restricted") {
+    body = '<p class="muted">（平台仅收录本报告的元数据与中文摘要；由于再发布许可未取得可查出处，本页不展示逐段译文。请点击下方“查看原文”访问原始报告。）</p>';
   } else {
     body = '<p class="muted">（该报告当前仅收录元数据，暂无可展示的中文内容；可点击下方“查看原文”访问原始报告。）</p>';
   }
   html += body;
-  if (secTitle === "报告全文翻译") {
+  if (gated) {
+    html += '<p class="small muted" style="margin-top:12px;">以上为平台基于原报告公开信息自撰的中文摘要，非原文翻译、非逐段译介。完整内容及版权归原发布机构所有，请通过「查看原文」阅读原始报告。</p>';
+  } else if (secTitle === "报告全文翻译") {
     html += '<p class="small muted" style="margin-top:12px;">本文为对原报告全文的中文翻译。中文译文仅供信息参考，如与原文存在差异以原文为准。</p>';
   } else if (r.content_blocks || r.translated_blocks) {
     html += '<p class="small muted" style="margin-top:12px;">本文为基于原报告公开信息整理的结构化中文译介，含原文主要章节的逐段翻译，非完整逐字全文翻译。完整内容及版权归原发布机构所有。</p>';
