@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 22:25:53;commit=local-20261023222553;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 23:22:45;commit=local-20261023232245;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>专业机构报告 · 伊拉克及周边区域社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792783553">
+<link rel="stylesheet" href="assets/css/style.css?v=1792786965">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -15,9 +15,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792783553"></script>
-<script src="assets/js/common.js?v=1792783553"></script>
-<script src="assets/js/data.js?v=1792783553"></script>
+<script src="assets/js/api.js?v=1792786965"></script>
+<script src="assets/js/common.js?v=1792786965"></script>
+<script src="assets/js/data.js?v=1792786965"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -404,10 +404,18 @@ API.get("/api/pro-reports/" + encodeURIComponent(getQS("id") || "")).then(d => {
     var licChecked = (r.license_checked_at || r.translation_verified_at || "");
     var licStatus = (r.license_status || "");
     var assumed = (!licChecked) || /默认|假设|assum/i.test(licStatus) || /默认|假设|assum/i.test(String(r.license_name || ""));
-    if (licStatus || r.license_name || r.full_translation_allowed) {
+    // F14 补强（2026-10-24）：许可区块不再按「有没有填写」决定是否显示。
+    // 全库 1236 条里 1182 条 license_status 为空，已发布记录中也有 35 条为空；
+    // 旧逻辑对这类记录完全不显示许可段落，读者会把「没提」读成「没问题」。
+    // 现在一律显示：要么给状态与核验时间，要么明确写「未记录许可信息」。
+    {
       html += '<div class="report-sec" style="margin-bottom:18px;border-left:3px solid #d97706;padding-left:12px;">';
       html += '<h2 style="font-size:15px;margin:0 0 6px;">许可与再利用状态</h2>';
-      if (assumed) {
+      if (!licStatus && !r.license_name && !licChecked) {
+        html += '<p class="small" style="margin:0 0 4px;color:#92400e;"><b>⚠ 未记录许可信息：</b>'
+          + '本页未记录原始机构的任何许可状态、许可链接或核查时间。据此不构成'
+          + '已授权转载、全文翻译或再利用的凭证；如需再分发请自行向原始机构取得许可。</p>';
+      } else if (assumed) {
         html += '<p class="small" style="margin:0 0 4px;color:#92400e;"><b>⚠ 许可未核验：</b>'
           + '本页未记录针对原始机构的许可核查时间与许可链接；当前状态为'
           + esc(licStatus ? ('「' + licStatus + '」') : '未填写')
