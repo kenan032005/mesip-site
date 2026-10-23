@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 17:21:52;commit=local-20261023172152;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 18:31:21;commit=local-20261023183121;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>最新安全事件 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792765311">
+<link rel="stylesheet" href="assets/css/style.css?v=1792769481">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -18,6 +18,7 @@
         <div><label>国家</label><select id="f-country"><option value="">全部</option></select></div>
         <div><label>风险等级</label>
           <select id="f-risk"><option value="">全部</option><option value="4">极高风险</option><option value="3">高风险</option><option value="2">中风险</option><option value="1">低风险</option></select>
+          <select id="f-riskmin" style="margin-top:6px"><option value="">不限下限</option><option value="3">高风险及以上</option><option value="2">中风险及以上</option></select>
         </div>
         <div><label>事件类别</label>
           <select id="f-cat"><option value="">全部</option></select>
@@ -37,9 +38,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792765311"></script>
-<script src="assets/js/common.js?v=1792765311"></script>
-<script src="assets/js/data.js?v=1792765311"></script>
+<script src="assets/js/api.js?v=1792769481"></script>
+<script src="assets/js/common.js?v=1792769481"></script>
+<script src="assets/js/data.js?v=1792769481"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -100,11 +101,24 @@ window.__STATIC__ = true;
     var arr = all().slice();
     var c = p.get("country"); if (c) arr = arr.filter(function (e) { return e.country === c; });
     var r = p.get("risk"); if (r) arr = arr.filter(function (e) { return String(e.risk_level) === String(r); });
-    var cat = p.get("category"); if (cat) arr = arr.filter(function (e) { return e.category === cat; });
+    // F10 修复（2026-10-23）：分类下拉的 value 是规范代码（如 armed_conflict），
+    // 而事件字段 category 是中文名（如 武装冲突与军事行动）。旧代码只比中文名，
+    // 导致选择任一类别都返回 0 条。现在同时接受代码与中文名。
+    var cat = p.get("category");
+    if (cat) arr = arr.filter(function (e) { return e.category_code === cat || e.category === cat; });
+    // F10 修复：风险下限（"高风险及以上"），与首页卡片口径一致
+    var rm = p.get("risk_min"); if (rm) arr = arr.filter(function (e) { return (e.risk_level || 0) >= parseInt(rm); });
+    // F10 修复：伊拉克 / WQ1 直接影响，与首页卡片同口径（标签或国家匹配）
+    if (p.get("iraq") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("iraq") >= 0 || e.country === "伊拉克";
+    });
+    if (p.get("wq1") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("wq1") >= 0;
+    });
     var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
     var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
     if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });
-    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
+    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category, e.category_code].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
     var lim = p.get("limit"); if (lim && parseInt(lim)) arr = arr.slice(0, parseInt(lim));
     return arr;
   }
@@ -210,17 +224,47 @@ window.__STATIC__ = true;
 <script>
 renderHeader("events.html");
 
+// ====== F10 修复（2026-10-23）=====
+// 1) URL 参数初始化控件：进入带参链接时先填充控件，保证「指标卡跳转 → 落地集合」一致，
+//    并支持浏览器返回。
+// 2) from/to 不再无条件拼 " 00:00:00"/" 23:59:59"：首页传入的是完整时间戳，
+//    拼接后会产生 "2026-10-22 14:21:49 00:00:00" 这类非法值导致字符串比较失效。
+// 3) 分类过滤同时接受规范代码与中文名（下拉 value 是 code，数据字段 category 是中文名）。
+function _normDateTime(v) {
+  if (!v) return "";
+  // 已是完整时间（含时分秒）则原样使用；仅日期则补 00:00:00
+  return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(v) ? v : (v + " 00:00:00");
+}
+function _initFromURL() {
+  const p = new URLSearchParams(location.search);
+  const map = { country: "#f-country", risk: "#f-risk", category: "#f-cat", q: "#f-q" };
+  Object.keys(map).forEach(k => {
+    const v = p.get(k);
+    if (v !== null && $(map[k])) $(map[k]).value = v;
+  });
+  const f = p.get("from"), t = p.get("to");
+  if (f && $("#f-from")) $("#f-from").value = f.slice(0, 10);
+  if (t && $("#f-to")) $("#f-to").value = t.slice(0, 10);
+  if (p.get("china") === "1" && $("#f-china")) $("#f-china").checked = true;
+  const rm = p.get("risk_min");
+  if (rm && $("#f-riskmin")) $("#f-riskmin").value = rm;
+  return p;
+}
+const _URL_PARAMS = _initFromURL();
+
 function buildQuery() {
-  const p = new URLSearchParams();
+  const p = new URLSearchParams(_URL_PARAMS.toString());
   const c = $("#f-country").value, r = $("#f-risk").value, cat = $("#f-cat").value;
   const f = $("#f-from").value, t = $("#f-to").value, q = $("#f-q").value;
-  if (c) p.set("country", c);
-  if (r) p.set("risk", r);
-  if (cat) p.set("category", cat);
-  if (f) p.set("from", f + " 00:00:00");
-  if (t) p.set("to", t + " 23:59:59");
-  if ($("#f-china").checked) p.set("china", "1");
-  if (q) p.set("q", q);
+  const rm = $("#f-riskmin") ? $("#f-riskmin").value : "";
+  if (c) p.set("country", c); else p.delete("country");
+  if (r) p.set("risk", r); else p.delete("risk");
+  if (rm) p.set("risk_min", rm); else p.delete("risk_min");
+  if (cat) p.set("category", cat); else p.delete("category");
+  if (f) p.set("from", _normDateTime(f)); else p.delete("from");
+  if (t) p.set("to", _normDateTime(t).replace("00:00:00", "23:59:59")); else p.delete("to");
+  if ($("#f-china").checked) p.set("china", "1"); else p.delete("china");
+  if (q) p.set("q", q); else p.delete("q");
   return p.toString();
 }
 

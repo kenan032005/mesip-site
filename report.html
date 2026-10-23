@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 17:21:52;commit=local-20261023172152;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 18:31:21;commit=local-20261023183121;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>伊拉克及周边区域社会安全形势日报 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792765311">
+<link rel="stylesheet" href="assets/css/style.css?v=1792769481">
 <style>
 /* ====== 日报专业报告样式 ====== */
 .obs-wrap { max-width: 900px; margin: 0 auto; }
@@ -124,6 +124,8 @@
 
   <!-- 日报内容 -->
   <div id="report"><div class="empty">加载中……</div></div>
+  <!-- F12 修复：内容版本与数据截止标注（复制/导出口径与屏幕一致） -->
+  <p class="small muted" id="versionNote" style="display:none;margin:8px 2px 0;"></p>
 
   <!-- 原始事件折叠 -->
   <div class="source-section" id="rawEvents" style="display:none;">
@@ -133,9 +135,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792765311"></script>
-<script src="assets/js/common.js?v=1792765311"></script>
-<script src="assets/js/data.js?v=1792765312"></script>
+<script src="assets/js/api.js?v=1792769481"></script>
+<script src="assets/js/common.js?v=1792769481"></script>
+<script src="assets/js/data.js?v=1792769481"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -196,11 +198,24 @@ window.__STATIC__ = true;
     var arr = all().slice();
     var c = p.get("country"); if (c) arr = arr.filter(function (e) { return e.country === c; });
     var r = p.get("risk"); if (r) arr = arr.filter(function (e) { return String(e.risk_level) === String(r); });
-    var cat = p.get("category"); if (cat) arr = arr.filter(function (e) { return e.category === cat; });
+    // F10 修复（2026-10-23）：分类下拉的 value 是规范代码（如 armed_conflict），
+    // 而事件字段 category 是中文名（如 武装冲突与军事行动）。旧代码只比中文名，
+    // 导致选择任一类别都返回 0 条。现在同时接受代码与中文名。
+    var cat = p.get("category");
+    if (cat) arr = arr.filter(function (e) { return e.category_code === cat || e.category === cat; });
+    // F10 修复：风险下限（"高风险及以上"），与首页卡片口径一致
+    var rm = p.get("risk_min"); if (rm) arr = arr.filter(function (e) { return (e.risk_level || 0) >= parseInt(rm); });
+    // F10 修复：伊拉克 / WQ1 直接影响，与首页卡片同口径（标签或国家匹配）
+    if (p.get("iraq") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("iraq") >= 0 || e.country === "伊拉克";
+    });
+    if (p.get("wq1") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("wq1") >= 0;
+    });
     var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
     var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
     if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });
-    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
+    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category, e.category_code].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
     var lim = p.get("limit"); if (lim && parseInt(lim)) arr = arr.slice(0, parseInt(lim));
     return arr;
   }
@@ -307,37 +322,152 @@ window.__STATIC__ = true;
 renderHeader("reports.html");
 let _md = "";
 let _reportData = null;
+// F12 修复（2026-10-23）：记录「当前屏幕显示所对应的权威内容版本」。
+// 旧实现里 _md 恒为旧版 reports.markdown，而屏幕显示 V2 full_report_html，
+// 导致「复制全文」复制到的是另一份内容。现在 _md 与屏幕始终同源。
+let _displayVersion = "";
 
 // ====== 加载 ======
-const dateParam = getQS("d") || "";
+// F10 修复（2026-10-23）：无 ?d= 参数时，旧实现请求 /api/report/（空日期），
+// 静态端 reportMap[""] 为 null，页面显示「该日期暂无日报」；必须回退到
+// 「最新一期可用日报」并显示真实日期。
+const _urlDate = getQS("d") || "";
 const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
-document.getElementById("datePicker").value = dateParam || today;
 
-API.get("/api/report/" + encodeURIComponent(dateParam || "")).then(d => {
-  const r = d.report;
-  if (!r) { $("#report").innerHTML = `<div class="empty">该日期暂无日报。<br><br><a href="reports.html">查看所有日报</a></div>`; return; }
-  _reportData = r;
-  _md = r.markdown || "";
-  // 决策型日报（decision_briefs）：有 V2 完整日报则默认展示；
-  // 无则回退 V1 简报，仍无则回退旧版新闻日报（均为后台降级逻辑，无公开版本入口）。
-  const bDate = dateParam || today;
-  API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
-    const brief = dd && dd.brief;
-    if (brief && brief.content_version === "v2" && brief.full_report_html) {
-      $("#report").innerHTML = brief.full_report_html;
-      setupDetailToggles();
-    } else if (brief) {
-      $("#report").innerHTML = renderDecisionBrief(brief, r);
-      setupDetailToggles();
-    } else {
-      $("#report").innerHTML = renderReport(r);
-      setupDetailToggles();
+// 从静态/服务端数据中取最新一期日报日期（优先 reportMap 键，回退 reports 列表）
+function _latestReportDate() {
+  try {
+    var DB = window.__DB__ || null;
+    if (DB) {
+      if (DB.reportMap) {
+        var ks = Object.keys(DB.reportMap).filter(function (k) { return k && DB.reportMap[k] && DB.reportMap[k].report; });
+        if (ks.length) return ks.sort().pop();
+      }
+      if (DB.reports && DB.reports.length) {
+        var ds = DB.reports.map(function (x) { return x.date; }).filter(Boolean).sort();
+        if (ds.length) return ds.pop();
+      }
     }
-  }).catch(() => {
-    $("#report").innerHTML = renderReport(r);
-    setupDetailToggles();
-  });
-}).catch(e => { $("#report").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+  } catch (e) {}
+  return today;
+}
+
+function _resolveDate(cb) {
+  if (_urlDate) { cb(_urlDate, false); return; }
+  API.get("/api/reports").then(function (d) {
+    var list = (d && d.reports) || [];
+    var ds = list.map(function (x) { return x.date; }).filter(Boolean).sort();
+    cb(ds.length ? ds.pop() : today, true);
+  }).catch(function () { cb(_latestReportDate(), true); });
+}
+
+_resolveDate(function (dateParam, isDefault) {
+  if (isDefault && document.getElementById("datePicker")) {
+    document.getElementById("datePicker").value = dateParam;
+  }
+  API.get("/api/report/" + encodeURIComponent(dateParam || "")).then(d => {
+    const r = d.report;
+    if (!r) { $("#report").innerHTML = `<div class="empty">该日期暂无日报。<br><br><a href="reports.html">查看所有日报</a></div>`; return; }
+    _reportData = r;
+    _md = r.markdown || "";
+    _displayVersion = "legacy";
+    const bDate = dateParam || today;
+    API.get("/api/decision-brief?date=" + encodeURIComponent(bDate)).then(dd => {
+      const brief = dd && dd.brief;
+      if (brief && brief.content_version === "v2" && brief.full_report_html) {
+        $("#report").innerHTML = brief.full_report_html;
+        // F12：屏幕用 V2 完整版，复制也必须用同一版本
+        _md = _canonicalTextOf(brief, r);
+        _displayVersion = "v2_full_html";
+        setupDetailToggles();
+      } else if (brief) {
+        $("#report").innerHTML = renderDecisionBrief(brief, r);
+        // F12：屏幕用 V2 决策简报渲染，复制用同一份权威文本
+        _md = _canonicalTextOf(brief, r);
+        _displayVersion = "v2_brief";
+        setupDetailToggles();
+      } else {
+        $("#report").innerHTML = renderReport(r);
+        _md = r.markdown || "";
+        _displayVersion = "legacy";
+        setupDetailToggles();
+      }
+      _annotateVersion();
+    }).catch(() => {
+      $("#report").innerHTML = renderReport(r);
+      _md = r.markdown || "";
+      _displayVersion = "legacy";
+      _annotateVersion();
+    });
+  }).catch(e => { $("#report").innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; });
+});
+
+// F12 修复：从权威对象生成与屏幕一致的纯文本（用于复制/导出）。
+// 优先使用 brief 自带的 full_report_markdown；否则按屏幕渲染所用的同一批字段拼装，
+// 绝不回退到旧版 reports.markdown（那会重新传播旧错误）。
+function _canonicalTextOf(b, oldR) {
+  if (b.full_report_markdown && String(b.full_report_markdown).length > 50) return b.full_report_markdown;
+  var out = [];
+  out.push("《" + ((oldR && oldR.title) || "伊拉克及周边区域社会安全形势日报") + "》");
+  out.push("报告日期：" + (b.brief_date || ""));
+  if (b.period_start || b.period_end) out.push("信息窗口：" + (b.period_start||"") + " → " + (b.period_end||""));
+  if (b.executive_summary) out.push("", "【摘要】", String(b.executive_summary));
+  if (b.overall_assessment) out.push("", "【总体判断】", String(b.overall_assessment));
+  if (b.iraq_assessment) out.push("", "【伊拉克】", String(b.iraq_assessment));
+  if (b.basra_assessment) out.push("", "【巴士拉】", String(b.basra_assessment));
+  if (b.wq1_assessment) out.push("", "【WQ1】", String(b.wq1_assessment));
+  if (b.hormuz_energy_assessment) out.push("", "【霍尔木兹与能源供应链】", String(b.hormuz_energy_assessment));
+  var ke = b.key_events || [];
+  if (ke.length) {
+    out.push("", "【重点事件】");
+    ke.forEach(function (k, i) {
+      out.push((i + 1) + ". " + (k.title || ""));
+      if (k.what_happened) out.push("   事实：" + k.what_happened);
+      if (k.latest_development) out.push("   最新进展：" + k.latest_development);
+      if (k.change_vs_previous) out.push("   较上期：" + k.change_vs_previous);
+      if (k.iraq_wq1_impact) out.push("   对伊拉克/WQ1影响：" + k.iraq_wq1_impact);
+    });
+  }
+  var sc = b.scenario_assessment || [];
+  if (sc.length) {
+    out.push("", "【未来24-72小时情景】");
+    sc.forEach(function (s) {
+      out.push("- " + (s.name || s.title || "") + "（可能性：" + (s.likelihood || "") + "）");
+      if (s.description || s.forecast) out.push("  " + (s.description || s.forecast || ""));
+    });
+  }
+  var ra = b.recommended_actions || [];
+  if (ra.length) {
+    out.push("", "【行动建议】");
+    ra.forEach(function (a) {
+      out.push("- [" + (a.category || "") + "] " + (a.target || "") + "：" + (a.action || "")
+        + (a.time_or_trigger ? ("（时间/触发：" + a.time_or_trigger + "）") : ""));
+    });
+  }
+  var sl = b.source_links || b.source_references || [];
+  if (sl.length) {
+    out.push("", "【信息来源】");
+    sl.forEach(function (s, i) {
+      out.push("[" + (i + 1) + "] " + (s.source_org || s.org || "") + "：《" + (s.title || "") + "》"
+        + (s.pub_time || s.time ? ("，" + (s.pub_time || s.time)) : "")
+        + (s.url ? ("，" + s.url) : ""));
+    });
+  }
+  return out.join("\n");
+}
+
+// F12 修复：在页面标注当前显示的内容版本与数据窗口，便于读者判断新鲜度
+function _annotateVersion() {
+  try {
+    var el = document.getElementById("versionNote");
+    if (!el) return;
+    var b = _reportData || {};
+    el.innerHTML = "内容版本：<b>" + (_displayVersion || "-") + "</b>"
+      + (b.data_cutoff ? (" · 数据截止 " + esc(String(b.data_cutoff).slice(0, 16))) : "")
+      + " · 复制/导出口径与屏幕显示一致";
+    el.style.display = "block";
+  } catch (e) {}
+}
 
 // ====== 决策型日报渲染（后台降级）======
 var __LvCn = {rising:"上升", stable_high:"高位趋稳", stable:"持平", easing:"缓和", volatile:"波动", insufficient_data:"数据不足"};
@@ -633,8 +763,16 @@ function setupDetailToggles() {
 }
 
 function copyReport() {
+  // F12 修复：_md 现在与屏幕显示同源（V2 完整版 / V2 决策简报 / 旧版三选一），
+  // 不再出现「屏幕是 V2、复制是旧版 markdown」的版本错位。
   if (!_md || _md.length < 50) return toast("暂无可复制内容");
-  navigator.clipboard.writeText(_md).then(() => toast("日报全文已复制到剪贴板")).catch(() => toast("复制失败，请手动选择"));
+  var payload = _md;
+  try {
+    var note = "【内容版本 " + (_displayVersion || "-") + "】";
+    if (_reportData && _reportData.data_cutoff) note += "【数据截止 " + String(_reportData.data_cutoff).slice(0, 16) + "】";
+    if (note) payload = note + "\n" + _md;
+  } catch (e) {}
+  navigator.clipboard.writeText(payload).then(() => toast("日报全文已复制到剪贴板")).catch(() => toast("复制失败，请手动选择"));
 }
 </script>
 </body>

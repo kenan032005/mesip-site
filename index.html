@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-23 17:21:52;commit=local-20261023172152;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-23 18:31:21;commit=local-20261023183121;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>中东社会安全态势与管理决策首页 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792765311">
-<link rel="stylesheet" href="assets/css/home.css?v=1792765311">
+<link rel="stylesheet" href="assets/css/style.css?v=1792769481">
+<link rel="stylesheet" href="assets/css/home.css?v=1792769481">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -124,9 +124,9 @@
 
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792765311"></script>
-<script src="assets/js/common.js?v=1792765311"></script>
-<script src="assets/js/data.js?v=1792765311"></script>
+<script src="assets/js/api.js?v=1792769481"></script>
+<script src="assets/js/common.js?v=1792769481"></script>
+<script src="assets/js/data.js?v=1792769481"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -187,11 +187,24 @@ window.__STATIC__ = true;
     var arr = all().slice();
     var c = p.get("country"); if (c) arr = arr.filter(function (e) { return e.country === c; });
     var r = p.get("risk"); if (r) arr = arr.filter(function (e) { return String(e.risk_level) === String(r); });
-    var cat = p.get("category"); if (cat) arr = arr.filter(function (e) { return e.category === cat; });
+    // F10 修复（2026-10-23）：分类下拉的 value 是规范代码（如 armed_conflict），
+    // 而事件字段 category 是中文名（如 武装冲突与军事行动）。旧代码只比中文名，
+    // 导致选择任一类别都返回 0 条。现在同时接受代码与中文名。
+    var cat = p.get("category");
+    if (cat) arr = arr.filter(function (e) { return e.category_code === cat || e.category === cat; });
+    // F10 修复：风险下限（"高风险及以上"），与首页卡片口径一致
+    var rm = p.get("risk_min"); if (rm) arr = arr.filter(function (e) { return (e.risk_level || 0) >= parseInt(rm); });
+    // F10 修复：伊拉克 / WQ1 直接影响，与首页卡片同口径（标签或国家匹配）
+    if (p.get("iraq") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("iraq") >= 0 || e.country === "伊拉克";
+    });
+    if (p.get("wq1") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("wq1") >= 0;
+    });
     var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
     var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
     if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });
-    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
+    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category, e.category_code].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
     var lim = p.get("limit"); if (lim && parseInt(lim)) arr = arr.slice(0, parseInt(lim));
     return arr;
   }
