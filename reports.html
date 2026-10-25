@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-25 19:59:51;commit=local-20261025195951;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-25 21:02:38;commit=local-20261025210238;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>伊拉克及周边区域社会安全形势日报 · 历史归档 · MESIP</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792947591">
+<link rel="stylesheet" href="assets/css/style.css?v=1792951358">
 <style>
   .rpt-list { max-width: 800px; margin: 0 auto; }
   .rpt-item { display: block; padding: 16px 18px; border-bottom: 1px solid #dee2e6; text-decoration: none; color: inherit; transition: background .15s; }
@@ -43,9 +43,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792947591"></script>
-<script src="assets/js/common.js?v=1792947591"></script>
-<script src="assets/js/data.js?v=1792947591"></script>
+<script src="assets/js/api.js?v=1792951358"></script>
+<script src="assets/js/common.js?v=1792951358"></script>
+<script src="assets/js/data.js?v=1792951358"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -101,6 +101,39 @@ window.__STATIC__ = true;
       return x.country === e.country && String(x.id) !== String(e.id);
     }).slice(0, 5);
   }
+  // ---- F11：历史事件分片按需回源 ----
+  // data.js 只含最新 2000 条公开事件；更早的历史事件详情从
+  // assets/js/event_shards/s_<id 起点>.json 按需拉取（GitHub Pages 纯静态可用）。
+  var _shardCache = {};
+  function shardFile(id) {
+    var n = parseInt(id, 10);
+    if (!n || n < 0 || isNaN(n)) return null;
+    var start = Math.floor(n / 1000) * 1000;
+    return "assets/js/event_shards/s_" + ("00000" + start).slice(-5) + ".json";
+  }
+  function loadShard(id) {
+    var f = shardFile(id);
+    if (!f) return Promise.resolve(null);
+    if (_shardCache[f]) return _shardCache[f];
+    _shardCache[f] = fetch(f, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("分片 " + f + " 加载失败（HTTP " + r.status + "）");
+      return r.json();
+    }).then(function (j) {
+      return (j && j.events) ? j.events : [];
+    }).catch(function (e) {
+      _shardCache[f] = null;   // 允许重试，不把失败永久缓存
+      throw e;
+    });
+    return _shardCache[f];
+  }
+  function shardEvent(id) {
+    return loadShard(id).then(function (evs) {
+      for (var i = 0; i < evs.length; i++) {
+        if (String(evs[i].id) === String(id)) return evs[i];
+      }
+      return null;
+    });
+  }
   function filt(qs) {
     var p = new URLSearchParams(qs || "");
     var arr = all().slice();
@@ -139,7 +172,15 @@ window.__STATIC__ = true;
     if (path === "/api/iraq") return DB.iraq;
     if (path === "/api/reports") return { reports: DB.reports };
     if (path === "/api/countries") return { countries: ((DB.overview || {}).countries || []) };
-    if (path.indexOf("/api/event/") === 0) { var id = path.split("/").pop(); var e = byId(id); return { event: e, related: relatedOf(e) }; }
+    if (path.indexOf("/api/event/") === 0) {
+      var id = path.split("/").pop();
+      // 全文接口在静态版由页面自行处理（给出明确提示 + 原文链接）
+      if (path.indexOf("/fulltext") >= 0) { return { status: "static", note: "静态归档版不提供按需全文翻译" }; }
+      var e = byId(id);
+      if (e) return { event: e, related: relatedOf(e) };
+      // 主数据未收录（多为 2000 条上限外的历史事件）→ 交给分片回源
+      return { __shardEventId: id };
+    }
     if (path.indexOf("/api/country/") === 0) { var n = decodeURIComponent(path.split("/").pop()); return DB.countryMap[n] || { country: null, events: [], risk_history: [] }; }
     if (path.indexOf("/api/report/") === 0) { var d = path.split("/").pop(); return DB.reportMap[d] || { report: null }; }
     if (path.indexOf("/api/pro-reports") === 0) {
@@ -212,8 +253,20 @@ window.__STATIC__ = true;
     return new Promise(function (resolve, reject) {
       try {
         var r = match(path);
-        if (r && r.error) reject(new Error("静态数据缺失：" + (r.error || path)));
-        else resolve(r);
+        if (r && r.error) { reject(new Error("静态数据缺失：" + (r.error || path))); return; }
+        // F11：主数据（data.js，最新 2000 条）里没有的事件 → 按需拉历史分片
+        if (r && r.__shardEventId !== undefined) {
+          shardEvent(r.__shardEventId).then(function (ev) {
+            if (!ev) {
+              // 分片里也没有：说明该记录不满足公开条件（已隔离/未获发布资格/涉版权或安全限制）
+              resolve({ event: null, related: [], notPublic: true });
+              return;
+            }
+            resolve({ event: ev, related: relatedOf(ev) });
+          }).catch(function (err) { reject(err); });
+          return;
+        }
+        resolve(r);
       } catch (e) { reject(e); }
     });
   };
