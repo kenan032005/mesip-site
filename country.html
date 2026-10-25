@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-25 23:22:55;commit=local-20261025232255;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-25 23:30:40;commit=local-20261025233040;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>国家安全动态 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792959775">
+<link rel="stylesheet" href="assets/css/style.css?v=1792960239">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -32,9 +32,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792959775"></script>
-<script src="assets/js/common.js?v=1792959775"></script>
-<script src="assets/js/data.js?v=1792959775"></script>
+<script src="assets/js/api.js?v=1792960239"></script>
+<script src="assets/js/common.js?v=1792960239"></script>
+<script src="assets/js/data.js?v=1792960239"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -307,8 +307,10 @@ API.get("/api/country/" + encodeURIComponent(name)).then(d => {
       + `<span style="display:inline-block;margin-top:6px;">`
       + `样本量 ${bar(scSample)} ${n} 条 ｜ 独立来源 ${bar(scSrc)} ${srcs.size} 个 ｜ 已核实 ${bar(scVer)} ${verified} 条`
       + `</span><br><span style="display:inline-block;margin-top:6px;">`
-      + `当前等级基于已采集信息与模型计算，仅反映公开报道覆盖范围内的风险水平；`
+      + `<b>说明：</b>本评级为<b>辅助分析工具</b>，非经验证的风险预测模型；评分受信息覆盖范围、`
+      + `来源偏差与模型假设影响。当前等级基于已采集信息与模型计算，仅反映公开报道覆盖范围内的风险水平；`
       + `未采集到的事件不进入统计，样本稀疏时等级波动不代表实际风险发生变化。`
+      + `低样本下的 L1 不等于已确认低风险，未经确认的高等级也不代表现实中已发生严重影响。`
       + `</span></div>`);
   })();
   // 伊拉克：突出巴士拉 / WQ1
