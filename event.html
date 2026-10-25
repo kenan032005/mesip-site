@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-25 21:06:32;commit=local-20261025210632;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-25 21:12:27;commit=local-20261025211227;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>事件详情 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792951591">
+<link rel="stylesheet" href="assets/css/style.css?v=1792951947">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -19,9 +19,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792951591"></script>
-<script src="assets/js/common.js?v=1792951591"></script>
-<script src="assets/js/data.js?v=1792951591"></script>
+<script src="assets/js/api.js?v=1792951947"></script>
+<script src="assets/js/common.js?v=1792951947"></script>
+<script src="assets/js/data.js?v=1792951947"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -350,13 +350,11 @@ API.get("/api/event/" + id).then(d => {
   if (e.source_url) html += `<div style="margin-top:10px;"><a class="src-link" href="${esc(e.source_url)}" target="_blank" rel="noopener">🔗 查看新闻原文</a></div>`;
   html += `<div class="meta" style="margin-top:14px;">
     ${row("国家", esc(e.country))}
-    ${row("城市/地区", esc(e.city))}
+    ${row("城市/地区", esc(e.city || (e.geo_confidence === "low" ? "位置未明确（待核实）" : "")))}
     ${row("报道时间", fmtTimeBJ(e.publish_time))}
     ${(e.time_basis === "occurred" && e.event_occurred_at)
         ? row("事件发生时间", fmtTimeBJ(e.event_occurred_at) + "（据正文表述）")
         : row("事件发生时间", "未获正文明确时间，以报道时间为准")}
-    ${row("地理位置", (e.city ? esc(e.city) + " · " : "") + esc(e.country)
-        + (e.geo_confidence === "low" ? "（位置待核实）" : ""))}
     ${row("事件类别", esc(e.category))}
     ${row("信息可信度", esc(e.credibility_name))}
     ${row("人员伤亡", esc(e.casualties))}
