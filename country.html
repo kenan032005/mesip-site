@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="mesip-build" content="ts=2026-10-25 22:15:24;commit=local-20261025221524;count=71;schema=pro-public-v2">
+<meta name="mesip-build" content="ts=2026-10-25 23:00:23;commit=local-20261025230023;count=71;schema=pro-public-v2">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>国家安全动态 · 中东地区社会安全信息平台</title>
-<link rel="stylesheet" href="assets/css/style.css?v=1792955724">
+<link rel="stylesheet" href="assets/css/style.css?v=1792958423">
 </head>
 <body>
 <div id="topbar" class="topbar"></div>
@@ -32,9 +32,9 @@
 </div>
 <footer class="site"></footer>
 
-<script src="assets/js/api.js?v=1792955724"></script>
-<script src="assets/js/common.js?v=1792955724"></script>
-<script src="assets/js/data.js?v=1792955724"></script>
+<script src="assets/js/api.js?v=1792958423"></script>
+<script src="assets/js/common.js?v=1792958423"></script>
+<script src="assets/js/data.js?v=1792958423"></script>
 <script>
 window.__STATIC__ = true;
 (function () {
@@ -290,16 +290,26 @@ API.get("/api/country/" + encodeURIComponent(name)).then(d => {
   (function riskCoverageNote() {
     const box = document.getElementById("crisk");
     if (!box) return;
-    const n7 = (d.events || []).length;          // 页面"近7天事件"实际条数
-    const lowCover = n7 < 5;
-    const txt = lowCover
-      ? `数据覆盖提示：该国近 7 天仅采集到 ${n7} 条事件，样本量偏小。当前等级基于已采集信息和模型计算，`
-        + `信息覆盖不足时不代表实际风险已确认较低，请结合其他信源判断。`
-      : `数据覆盖提示：当前等级基于已采集信息与模型计算，仅反映公开报道覆盖范围内的风险水平；`
-        + `未采集到的事件不进入统计，等级偏低不等于实际风险已确认较低。`;
+    const evs = d.events || [];
+    const n = evs.length;
+    // 证据充分性三要素：样本量 / 独立来源覆盖 / 核实状态
+    const srcs = new Set(evs.map(e => e.source_name || ""));
+    const verified = evs.filter(e => e.credibility_grade === "A" || e.credibility_grade === "B").length;
+    const scSample = n === 0 ? 0 : n < 5 ? 1 : n < 20 ? 2 : 3;
+    const scSrc = srcs.size <= 1 ? 0 : srcs.size <= 3 ? 1 : 3;
+    const scVer = verified === 0 ? 0 : verified < 3 ? 1 : 3;
+    const avg = (scSample + scSrc + scVer) / 3;
+    const tag = avg < 1 ? "依据不足" : avg < 2 ? "可信度有限" : "依据较充分";
+    const bar = (v) => `${"●".repeat(v)}${"○".repeat(3 - v)}`;
     box.insertAdjacentHTML("beforeend",
       `<div class="cr-wq1" style="border-left-color:#b45309;background:#fffbeb;color:#92400e;">`
-      + `<b>评级可信度：</b>${txt}</div>`);
+      + `<b>评级可信度：${tag}</b>（风险等级与依据充分性是两件事，等级高≠证据足，等级低≠风险已确认低）<br>`
+      + `<span style="display:inline-block;margin-top:6px;">`
+      + `样本量 ${bar(scSample)} ${n} 条 ｜ 独立来源 ${bar(scSrc)} ${srcs.size} 个 ｜ 已核实 ${bar(scVer)} ${verified} 条`
+      + `</span><br><span style="display:inline-block;margin-top:6px;">`
+      + `当前等级基于已采集信息与模型计算，仅反映公开报道覆盖范围内的风险水平；`
+      + `未采集到的事件不进入统计，样本稀疏时等级波动不代表实际风险发生变化。`
+      + `</span></div>`);
   })();
   // 伊拉克：突出巴士拉 / WQ1
   if (co.name_zh === "伊拉克" && d.country_risk && d.country_risk.length) {
