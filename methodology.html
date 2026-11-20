@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="mesip-build" content="ts=2026-11-20 17:56:16;commit=local-20261120175616;count=70;schema=pro-public-v2">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风险评级方法 · 中东地区社会安全信息平台</title>
+<link rel="stylesheet" href="assets/css/style.css?v=1795186575">
+<style>
+  .method { max-width: 900px; }
+  .method h2 { font-size: 1.4rem; margin: 2em 0 .6em; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+  .method h2:first-of-type { margin-top: 0; }
+  .method h3 { font-size: 1.1rem; margin: 1.4em 0 .4em; color: var(--text); }
+  .method table { width: 100%; border-collapse: collapse; margin: .8em 0 1.2em; font-size: .93rem; }
+  .method th, .method td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  .method th { background: var(--bg2, #f5f5f5); font-weight: 600; white-space: nowrap; }
+  .method .note { padding: 10px 14px; border-left: 4px solid #2f6feb; background: #f0f6ff; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .warn  { padding: 10px 14px; border-left: 4px solid #e65100; background: #fff3e0; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .danger { padding: 10px 14px; border-left: 4px solid #b71c1c; background: #fff0f0; margin: .8em 0 1.2em; border-radius: 4px; }
+  .method .dim-label { display: inline-block; min-width: 160px; font-weight: 600; }
+  .method .formula { font-family: monospace; background: var(--bg2, #f5f5f5); padding: 3px 8px; border-radius: 3px; }
+  .method .score-bar { display: inline-block; height: 10px; border-radius: 5px; vertical-align: middle; margin-right: 6px; }
+  .method .toc { columns: 2; margin: 1em 0; padding: 0 0 0 1.2em; }
+  .method .toc li { margin-bottom: 4px; }
+  @media (max-width: 600px) { .method .toc { columns: 1; } }
+</style>
+</head>
+<body>
+<div id="topbar" class="topbar"></div>
+<div class="container method">
+
+  <div class="hero" id="hero">
+    <h1>风险评级方法</h1>
+    <p class="muted">本页面公开展示中东地区社会安全信息平台（MESIP）的风险评级体系。所有评级基于确定性规则，不调用大语言模型（LLM），不编造、不夸大。本体系为"系统初评"；允许人工复核覆盖并记录审计日志。</p>
+    <p class="small muted">最后一次评级标准更新时间：<b>2026-07-19</b></p>
+  </div>
+
+  <!-- 目录 -->
+  <div class="panel">
+    <h3>目录</h3>
+    <ol class="toc">
+      <li><a href="#content-type">内容类型分类（A–G）</a></li>
+      <li><a href="#admission">安全事件准入标准</a></li>
+      <li><a href="#event" id="toc-event">事件风险评分方法（5 维 / 100 分）</a></li>
+      <li><a href="#cred">信息可信度标准（A–D）</a></li>
+      <li><a href="#wq1">WQ1 关联等级</a></li>
+      <li><a href="#country" id="toc-country">国家风险评分方法（7 维 / 100 分）</a></li>
+      <li><a href="#advice">风险等级对应的管理建议</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. 内容类型分类 -->
+  <h2 id="content-type">一、内容类型分类（A–G）</h2>
+  <p>平台对每条信息首先做<strong>内容类型判定</strong>，而非默认赋予安全事件风险。信息类型不同，后续评分、展示和统计的处理方式也不同。</p>
+
+  <table>
+    <thead><tr><th>类型</th><th>名称</th><th>定义</th><th>是否赋予事件风险分</th><th>是否计入安全统计</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>A</b></td>
+        <td>已发生安全事件</td>
+        <td>已经发生的、有可验证事实的安全事件（袭击、爆炸、骚乱、事故等）</td>
+        <td>是</td><td>是</td>
+      </tr>
+      <tr>
+        <td><b>B</b></td>
+        <td>正在发展事件</td>
+        <td>已发生但仍在演变中，局势尚未稳定的安全事件</td>
+        <td>是</td><td>是</td>
+      </tr>
+      <tr>
+        <td><b>C</b></td>
+        <td>安全预警</td>
+        <td>尚未发生但有明确预警信号（政府预警、使馆通知、武装威胁、演习通告、气象预警等）</td>
+        <td>是</td><td>是（仅影响近期动态和未来展望）</td>
+      </tr>
+      <tr>
+        <td><b>D</b></td>
+        <td>政策和运营动态</td>
+        <td>外交访问、协议签署、法规改革、油气招标、选举信息、经济动态等</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>E</b></td>
+        <td>专业分析</td>
+        <td>智库报告、咨询公司研判、学术研究、深度分析等</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>F</b></td>
+        <td>观点和评论</td>
+        <td>专栏文章、社论、媒体评论、分析人士观点</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+      <tr>
+        <td><b>G</b></td>
+        <td>背景和历史资料</td>
+        <td>历史回顾、司法案件、档案文献、纪念活动等与当前安全形势无关的内容</td>
+        <td>否（信息类）</td><td>否</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>判定优先级：</b>G（历史背景）→ F（观点评论）→ E（专业分析）→ D（政策运营）→ C（安全预警）→ A/B（安全事件）。若一条信息同时包含多类特征，取优先级更靠前者。分类由关键字匹配和分类标签组合判定。
+  </div>
+
+  <!-- 2. 安全事件准入标准 -->
+  <h2 id="admission">二、安全事件准入标准</h2>
+  <p>平台收集的中东地区各类信息并非全部视为"安全事件"。只有满足以下任一条件的信息，才被赋予事件风险评分（内容类型 A / B / C）：</p>
+
+  <table>
+    <thead><tr><th>准入条件</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. 已发生人员伤亡</b></td><td>有死亡或受伤报告</td></tr>
+      <tr><td><b>2. 涉及武装冲突或军事行动</b></td><td>交火、空袭、导弹攻击、军事部署等</td></tr>
+      <tr><td><b>3. 涉及恐怖主义和爆炸</b></td><td>炸弹袭击、自杀式袭击、IED 等</td></tr>
+      <tr><td><b>4. 重大社会治安事件</b></td><td>大规模绑架、劫持、恶性犯罪</td></tr>
+      <tr><td><b>5. 示威、罢工和社会动荡</b></td><td>大规模游行、骚乱、罢工导致秩序混乱</td></tr>
+      <tr><td><b>6. 交通、航空和出行中断</b></td><td>机场关闭、领空限制、道路封锁、港口停运</td></tr>
+      <tr><td><b>7. 能源和重要基础设施安全</b></td><td>油气设施遭袭或被迫停产、电网大规模中断</td></tr>
+      <tr><td><b>8. 自然灾害和公共卫生事件</b></td><td>地震、洪水、疫情等影响安全形势</td></tr>
+      <tr><td><b>9. 明确的安全预警</b></td><td>政府/使馆/国际组织发布的官方安全预警</td></tr>
+      <tr><td><b>10. 涉及中国公民或中资企业</b></td><td>任何涉华安全信息均纳入评分</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>不满足任何条件的信息</b>（如外交访问、经济政策、历史回顾）归入 D/E/F/G 类，标记为"信息类（0 级）"，不进入安全风险统计。
+  </div>
+
+  <!-- 3. 事件风险评分方法 -->
+  <h2 id="event">三、事件风险评分方法（5 维 / 100 分）</h2>
+
+  <p>对类型 A/B/C 的安全事件，采用<strong>5 维评分体系</strong>，每维满分如下，合计 <b>100 分</b>：</p>
+
+  <table>
+    <thead><tr><th>维度</th><th>满分</th><th>评分逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>人员及财产后果</b></td>
+        <td>30</td>
+        <td>死亡（15–30分）、受伤（10 分）、无伤亡但涉安全（5 分）。涉华加成至 ≥15，社会影响加成至 ≥10。</td>
+      </tr>
+      <tr>
+        <td><b>事件范围和影响规模</b></td>
+        <td>15</td>
+        <td>跨境/全国 15；跨省/多城市 10；单城市 5。武装冲突/恐袭、示威/能源类分类加重。</td>
+      </tr>
+      <tr>
+        <td><b>持续性和升级可能</b></td>
+        <td>20</td>
+        <td>正在发展中且有外溢/升级信号 20；正在发展中 15；预警 10；已稳定/结束 5。</td>
+      </tr>
+      <tr>
+        <td><b>交通、能源和运营中断</b></td>
+        <td>20</td>
+        <td>机场关闭 +15；能源设施中断 +15；道路封锁 +10；全国/大范围全面中断 20。</td>
+      </tr>
+      <tr>
+        <td><b>行为主体意图和能力</b></td>
+        <td>15</td>
+        <td>国家军队/导弹/无人机/恐怖组织/ISIS 15；恐袭/武装冲突 10；社会治安/示威 5；自然灾害 0。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>事件风险等级划分</h3>
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>分数区间</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><b>0</b></td><td>信息类</td><td>—</td><td>D/E/F/G 类内容，不适用安全事件风险评分</td></tr>
+      <tr><td><b>1</b></td><td>低风险</td><td>1–24</td><td>局部、短暂、影响有限的事件</td></tr>
+      <tr><td><b>2</b></td><td>中风险</td><td>25–49</td><td>有一定影响范围或持续时间的事件</td></tr>
+      <tr><td><b>3</b></td><td>高风险</td><td>50–74</td><td>对人员安全或运营产生重大威胁</td></tr>
+      <tr><td><b>4</b></td><td>极高风险</td><td>75–100</td><td>灾难性或大规模持续性安全事件</td></tr>
+    </tbody>
+  </table>
+
+  <h3>强制升级规则</h3>
+  <p>以下情形会<strong>无视原始评分直接提升等级</strong>：</p>
+
+  <div class="warn">
+    <b>强制≥高风险（≥50 分）</b>
+    <ul style="margin:.4em 0 0;">
+      <li>涉及中国公民或中资企业</li>
+      <li>机场、港口、能源设施受影响</li>
+      <li>巴士拉机场/港口、油田、油气设施受影响</li>
+      <li>出现多名死亡</li>
+      <li>发布紧急避险、撤离通知或主要区域封锁</li>
+    </ul>
+  </div>
+
+  <div class="danger">
+    <b>强制≥极高风险（≥75 分）</b>
+    <ul style="margin:.4em 0 0;">
+      <li>机场或能源设施受影响 <b>且</b> 有人死亡</li>
+      <li>WQ1 或中资项目遭袭击或直接重大影响</li>
+      <li>全国领空或大范围领空限制/关闭</li>
+      <li>城市连续遭受袭击导致大规模人员伤亡</li>
+      <li>多个机场/港口/能源设施同时停止运行</li>
+    </ul>
+  </div>
+
+  <p>每条安全事件在详情页显示完整的 5 维分项、总分和评级理由，确保评级可解释、可复核。</p>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 4. 信息可信度标准 -->
+  <h2 id="cred">四、信息可信度标准（A–D）</h2>
+
+  <p>信息可信度独立于风险等级，评估的是<strong>信息来源的可靠性</strong>，而非事件本身的严重程度。可信度基于：来源权威性、独立来源数量、是否来自社媒。</p>
+
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>判定逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>A</b></td>
+        <td>已确认</td>
+        <td>至少 2 个独立来源 <b>且</b> 至少其一为官方/权威（政府、国防部、通讯社、联合国等）</td>
+      </tr>
+      <tr>
+        <td><b>B</b></td>
+        <td>较高可信度</td>
+        <td>至少 2 个独立来源，或单一官方/权威来源</td>
+      </tr>
+      <tr>
+        <td><b>C</b></td>
+        <td>尚待进一步核实</td>
+        <td>单一媒体来源，非社媒单信源</td>
+      </tr>
+      <tr>
+        <td><b>D</b></td>
+        <td>未经证实</td>
+        <td>来源于社媒且无第二来源佐证</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>标记为"未经证实（D）"或内容类型为 E/F/G 的事件，系统自动标记 <code>needs_review=1</code>，提示人工复核。</p>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 5. WQ1 关联等级 -->
+  <h2 id="wq1">五、WQ1 关联等级</h2>
+
+  <p>WQ1 关联评估事件对巴士拉油气项目运营的<strong>潜在影响程度</strong>，独立于事件风险等级。</p>
+
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>判定逻辑</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>直接影响</b></td>
+        <td style="color:#b71c1c;font-weight:600;">Direct</td>
+        <td>明确涉及中国公民或中资企业；WQ1/Basra 项目所在地直接发生安全事件</td>
+      </tr>
+      <tr>
+        <td><b>潜在影响</b></td>
+        <td style="color:#e65100;font-weight:600;">Potential</td>
+        <td>事件涉及巴士拉/油田地区、中资/中石油/中石化等关键词；或影响能源/机场设施</td>
+      </tr>
+      <tr>
+        <td><b>间接影响</b></td>
+        <td style="color:#b8860b;font-weight:600;">Indirect</td>
+        <td>事件产生涉华或涉外影响（impact_china / impact_foreign）；或涉及能源/交通类别</td>
+      </tr>
+      <tr>
+        <td><b>暂无明显影响</b></td>
+        <td style="color:#888;">None</td>
+        <td>与 WQ1 或中资项目无明显关联</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><a href="#toc-event">↑ 返回目录</a></p>
+
+  <!-- 6. 国家风险评分方法 -->
+  <h2 id="country">六、国家风险评分方法（7 维 / 100 分）</h2>
+
+  <p>国家风险由 <strong>7 个安全维度 × 时间加权</strong>计算得出（满分 100）。每个维度得分 = 结构性基础（40%）+ 近期动态（45%）+ 未来 72h 展望（15%）。</p>
+
+  <h3>7 维权重分配</h3>
+  <table>
+    <thead><tr><th>维度</th><th>权重</th><th>评估要素</th></tr></thead>
+    <tbody>
+      <tr><td><b>d1 · 武装冲突及跨境军事风险</b></td><td>25%</td><td>国家间冲突、内战、空袭、军事部署、导弹攻击等</td></tr>
+      <tr><td><b>d2 · 恐怖主义及非国家武装风险</b></td><td>15%</td><td>恐怖组织活动能力、爆炸袭击、武装组织控制区</td></tr>
+      <tr><td><b>d3 · 政治稳定和社会动荡</b></td><td>15%</td><td>示威、罢工、骚乱、政府更迭、政治危机</td></tr>
+      <tr><td><b>d4 · 犯罪、绑架及外国人员风险</b></td><td>10%</td><td>绑架、抢劫、对外国人/外企的针对性犯罪</td></tr>
+      <tr><td><b>d5 · 交通能源及关键基建连续性</b></td><td>15%</td><td>机场/港口/道路可用性、油气设施安全、电力供应</td></tr>
+      <tr><td><b>d6 · 政府治理医疗应急能力</b></td><td>10%</td><td>医疗资源、应急响应、政府稳定性、灾害应对</td></tr>
+      <tr><td><b>d7 · 外企中资油气项目暴露度</b></td><td>10%</td><td>中资项目数量与分布、WQ1 位置、油气暴露面</td></tr>
+    </tbody>
+  </table>
+
+  <h3>时间权重</h3>
+  <p>每个维度的最终得分为三种时间分量的加权和：</p>
+  <div class="note">
+    <b>维度最终得分 = 结构性基础 × 0.40 + 近期动态 × 0.45 + 未来 72h 展望 × 0.15</b>
+    <ul style="margin:.4em 0 0;">
+      <li><strong>结构性基础</strong>（40%）：基于国家/地区的长期结构性风险因素，每月复核。伊拉克 5 个地区的基线各有差异。</li>
+      <li><strong>近期动态</strong>（45%）：过去 30 天内的 A/B/C 类事件，按发生时间衰减（≤3 天权重 1.0；≤7 天 0.6；≤30 天 0.3；>30 天 0.1）。</li>
+      <li><strong>未来 72h 展望</strong>（15%）：未来 72 小时内可能影响安全形势的 C 类预警。</li>
+    </ul>
+  </div>
+
+  <h3>国家风险等级</h3>
+  <table>
+    <thead><tr><th>等级</th><th>名称</th><th>总分区间</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>低风险</td><td>1–24</td></tr>
+      <tr><td>2</td><td>中风险</td><td>25–49</td></tr>
+      <tr><td>3</td><td>高风险</td><td>50–74</td></tr>
+      <tr><td>4</td><td>极高风险</td><td>75–100</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>国家风险强制升级：</b>若近 30 天内出现至少 2 条极高风险事件，或出现全国领空关闭/政府失控/国家机构瘫痪等极端情况，总分强制 ≥75（极高风险）。若出现 1 条极高风险事件，总分强制 ≥50（高风险）。
+  </div>
+
+  <h3>降级规则（谨慎降级）</h3>
+  <p>国家风险降级比升级更谨慎：只有在连续 7 天无新增高风险事件、且趋势箭头持续下降时，才能自然降级。趋势箭头（↑ / → / ↓）仅反映 7 天内的分数变化方向，不等于风险等级的升降。</p>
+
+  <h3>伊拉克地区拆分</h3>
+  <p>伊拉克单独计算以下 5 个区间的国家风险：</p>
+  <ul>
+    <li><b>全国</b>：统合全国所有事件</li>
+    <li><b>巴格达</b>：首都及周边</li>
+    <li><b>巴士拉</b>：WQ1 油气项目核心区</li>
+    <li><b>北部库区</b>：埃尔比勒、苏莱曼尼亚、杜胡克</li>
+    <li><b>西部边境</b>：安巴尔、尼尼微等与叙利亚接壤地区</li>
+  </ul>
+  <p>全国性事件对地区以 <span class="formula">×0.4 外溢权重</span>计入；地区本地事件以 <span class="formula">×1.0 全权重</span>计入，保证地区风险不低于、也不盲目等于全国。</p>
+  <p><a href="#toc-country">↑ 返回目录</a></p>
+
+  <!-- 7. 风险等级对应的管理建议 -->
+  <h2 id="advice">七、风险等级对应的管理建议</h2>
+
+  <table>
+    <thead><tr><th>风险等级</th><th>管理建议</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>0 · 信息类</b></td>
+        <td>常规关注，无需调整正常计划。</td>
+      </tr>
+      <tr>
+        <td><b>1 · 低风险</b><br><span class="small muted">事件 1–24 分 / 国家 1–24 分</span></td>
+        <td>常规关注；无需调整正常计划；必要时提醒相关人员。</td>
+      </tr>
+      <tr>
+        <td><b>2 · 中风险</b><br><span class="small muted">事件 25–49 分 / 国家 25–49 分</span></td>
+        <td>加强信息监测；调整部分出行安排；避开事件区域；通知相关部门和承包商；准备替代路线。</td>
+      </tr>
+      <tr>
+        <td><b>3 · 高风险</b><br><span class="small muted">事件 50–74 分 / 国家 50–74 分</span></td>
+        <td>启动强化安全监测；限制非必要出行；重新评估人员轮换和车辆路线；检查应急联系人和通信；做好就地避险或撤离准备；由管理层每日复核风险。</td>
+      </tr>
+      <tr>
+        <td><b>4 · 极高风险</b><br><span class="small muted">事件 75–100 分 / 国家 75–100 分</span></td>
+        <td>启动危机管理机制；暂停非必要活动；停止非必要人员出行；实施就地避险、人员集中或撤离；每小时更新事件状态；立即上报管理层。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>免责声明：</b>本平台所有评级均为基于公开信息的"系统初评"，不作为决策唯一依据。所有风险评级均保留详细的分项得分和评分理由，支持人工复核和覆盖。实际操作中请结合一线情报和专业判断。
+  </div>
+
+  <p style="margin-top:2em; padding-top:1em; border-top:1px solid var(--border);" class="small muted">
+    中东地区社会安全信息平台（MESIP）· 风险评级体系 v2.0 · 最后更新：2026-07-19
+  </p>
+
+</div>
+<footer class="site"></footer>
+
+<script src="assets/js/api.js?v=1795186575"></script>
+<script src="assets/js/common.js?v=1795186575"></script>
+<script src="assets/js/data.js?v=1795186575"></script>
+<script>
+window.__STATIC__ = true;
+(function () {
+  // 兜底：防止 api.js 异常导致全局 API 未定义时，下方 API.get = ... 抛出
+  // ReferenceError 而整段脚本中断（会让页面空白且无任何提示）。
+  var API = window.API || (window.API = {});
+  // 捕获一次，避免每次请求都重复读取可能不存在的全局对象
+  var DB = window.__DB__ || null;
+  window.__MESIP_DB_OK__ = !!DB;
+
+  // 构建元数据（控制台/调试用）：build_timestamp / git_commit / public_report_count / schema_version
+  try {
+    var _bm = (DB && DB.build_meta) || null;
+    if (_bm) {
+      window.__MESIP_BUILD__ = _bm;
+      console.info("[MESIP 静态构建] " + (_bm.build_timestamp || "") + " | commit=" + (_bm.git_commit || "") +
+        " | 专业报告(published)=" + (_bm.public_report_count) + " | schema=" + (_bm.schema_version || ""));
+    }
+  } catch (e) {}
+
+  function all() { return (DB && DB.events) || []; }
+  function byId(id) {
+    var arr = all();
+    for (var i = 0; i < arr.length; i++) {
+      if (String(arr[i].id) === String(id)) return arr[i];
+    }
+    return null;
+  }
+  function byProId(id) {
+    // 详情优先从 proDetail（含全文翻译字段）查询，回退到列表精简版
+    var arr = (DB && DB.proDetail) || [];
+    for (var i = 0; i < arr.length; i++) {
+      if (String(arr[i].id) === String(id)) return arr[i];
+    }
+    arr = (DB && DB.proReports) || [];
+    for (var j = 0; j < arr.length; j++) {
+      if (String(arr[j].id) === String(id)) return arr[j];
+    }
+    return null;
+  }
+  function proRelatedOf(r) {
+    if (!r || !DB || !DB.proReports) return [];
+    var theme = ((r.risk_category || "").split("/")[0] || r.content_categories || "");
+    if (!theme) return [];
+    return DB.proReports.filter(function (x) {
+      return String(x.id) !== String(r.id) &&
+        ((x.risk_category || "").indexOf(theme) >= 0 || (x.content_categories || "").indexOf(theme) >= 0);
+    }).slice(0, 4);
+  }
+  function relatedOf(e) {
+    if (!e) return [];
+    return all().filter(function (x) {
+      return x.country === e.country && String(x.id) !== String(e.id);
+    }).slice(0, 5);
+  }
+  // ---- F11：历史事件分片按需回源 ----
+  // data.js 只含最新 2000 条公开事件；更早的历史事件详情从
+  // assets/js/event_shards/s_<id 起点>.json 按需拉取（GitHub Pages 纯静态可用）。
+  var _shardCache = {};
+  function shardFile(id) {
+    var n = parseInt(id, 10);
+    if (!n || n < 0 || isNaN(n)) return null;
+    var start = Math.floor(n / 1000) * 1000;
+    return "assets/js/event_shards/s_" + ("00000" + start).slice(-5) + ".json";
+  }
+  function loadShard(id) {
+    var f = shardFile(id);
+    if (!f) return Promise.resolve(null);
+    if (_shardCache[f]) return _shardCache[f];
+    _shardCache[f] = fetch(f, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("分片 " + f + " 加载失败（HTTP " + r.status + "）");
+      return r.json();
+    }).then(function (j) {
+      return (j && j.events) ? j.events : [];
+    }).catch(function (e) {
+      _shardCache[f] = null;   // 允许重试，不把失败永久缓存
+      throw e;
+    });
+    return _shardCache[f];
+  }
+  function shardEvent(id) {
+    return loadShard(id).then(function (evs) {
+      for (var i = 0; i < evs.length; i++) {
+        if (String(evs[i].id) === String(id)) return evs[i];
+      }
+      return null;
+    });
+  }
+  function filt(qs) {
+    var p = new URLSearchParams(qs || "");
+    var arr = all().slice();
+    var c = p.get("country"); if (c) arr = arr.filter(function (e) { return e.country === c; });
+    var r = p.get("risk"); if (r) arr = arr.filter(function (e) { return String(e.risk_level) === String(r); });
+    // F10 修复（2026-10-23）：分类下拉的 value 是规范代码（如 armed_conflict），
+    // 而事件字段 category 是中文名（如 武装冲突与军事行动）。旧代码只比中文名，
+    // 导致选择任一类别都返回 0 条。现在同时接受代码与中文名。
+    var cat = p.get("category");
+    if (cat) arr = arr.filter(function (e) { return e.category_code === cat || e.category === cat; });
+    // F10 修复：风险下限（"高风险及以上"），与首页卡片口径一致
+    var rm = p.get("risk_min"); if (rm) arr = arr.filter(function (e) { return (e.risk_level || 0) >= parseInt(rm); });
+    // F10 修复：伊拉克 / WQ1 直接影响，与首页卡片同口径（标签或国家匹配）
+    if (p.get("iraq") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("iraq") >= 0 || e.country === "伊拉克";
+    });
+    if (p.get("wq1") === "1") arr = arr.filter(function (e) {
+      return (e.module_tags || []).indexOf("wq1") >= 0;
+    });
+    // F10 修复：状态过滤，使卡片链接（status=published）落地集合与卡片计数口径一致
+    var st = p.get("status"); if (st) arr = arr.filter(function (e) { return e.status === st; });
+    var f = p.get("from"); if (f) arr = arr.filter(function (e) { return (e.publish_time || "") >= f; });
+    var t = p.get("to"); if (t) arr = arr.filter(function (e) { return (e.publish_time || "") <= t; });
+    if (p.get("china") === "1") arr = arr.filter(function (e) { return e.involves_china_company || e.involves_china_citizen; });
+    var q = p.get("q"); if (q) { var s = q.toLowerCase(); arr = arr.filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category, e.category_code].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); }
+    var lim = p.get("limit"); if (lim && parseInt(lim)) arr = arr.slice(0, parseInt(lim));
+    return arr;
+  }
+  function match(path) {
+    if (!DB) throw new Error("数据未能成功加载，请刷新页面或检查网络后重试");
+    if (path === "/api/overview") return DB.overview;
+    if (path === "/api/home") return DB.home;
+    if (path === "/api/hormuz") return { report: DB.hormuz };
+    if (path === "/api/brent") return DB.brent;
+    if (path.indexOf("/api/reuters") === 0) return DB.reuters || { items: [], count: 0 };
+    if (path === "/api/iraq") return DB.iraq;
+    if (path === "/api/reports") return { reports: DB.reports };
+    if (path === "/api/countries") return { countries: ((DB.overview || {}).countries || []) };
+    if (path.indexOf("/api/event/") === 0) {
+      var id = path.split("/").pop();
+      // 全文接口在静态版由页面自行处理（给出明确提示 + 原文链接）
+      if (path.indexOf("/fulltext") >= 0) { return { status: "static", note: "静态归档版不提供按需全文翻译" }; }
+      var e = byId(id);
+      if (e) return { event: e, related: relatedOf(e) };
+      // 主数据未收录（多为 2000 条上限外的历史事件）→ 交给分片回源
+      return { __shardEventId: id };
+    }
+    if (path.indexOf("/api/country/") === 0) { var n = decodeURIComponent(path.split("/").pop()); return DB.countryMap[n] || { country: null, events: [], risk_history: [] }; }
+    if (path.indexOf("/api/report/") === 0) { var d = path.split("/").pop(); return DB.reportMap[d] || { report: null }; }
+    if (path.indexOf("/api/pro-reports") === 0) {
+      // 详情页：/api/pro-reports/<id>[?...]
+      if (path.indexOf("/api/pro-reports/") === 0) {
+        var pid = path.split("/").pop().split("?")[0];
+        var prr = byProId(pid);
+        return { report: prr, related: proRelatedOf(prr) };
+      }
+      // 列表页：/api/pro-reports[?...]
+      var qs = path.split("?")[1] || "";
+      var p = new URLSearchParams(qs);
+      var arr = (DB.proReports) || [];
+      // 默认仅返回 published（与 server.py _pro_public_filters 一致），export=all 解除限制
+      var xpt = p.get("export");
+      if (xpt !== "all") { arr = arr.filter(function (x) { return x.status === "published"; }); }
+      var org = p.get("org");
+      if (org) arr = arr.filter(function (x) { return (x.org || "").indexOf(org) >= 0; });
+      var cps = p.get("copyright_status");
+      if (cps) arr = arr.filter(function (x) { return x.copyright_status === cps; });
+      var dom = p.get("domain");
+      if (dom) arr = arr.filter(function (x) { return (x.content_categories || "").indexOf(dom) >= 0; });
+      var wq = p.get("wq1_relevance");
+      if (wq) arr = arr.filter(function (x) { return x.wq1_relevance === wq; });
+      var rg = p.get("region");
+      if (rg) arr = arr.filter(function (x) { return (x.regions || x.countries || "").indexOf(rg) >= 0; });
+      var q = p.get("q");
+      if (q) {
+        var s = q.toLowerCase();
+        arr = arr.filter(function (x) {
+          return [x.title_zh, x.title_orig, x.org, x.content_zh, x.core_conclusion].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; });
+        });
+      }
+      var orgs = {}, cops = {};
+      arr.forEach(function (x) { if (x.org) orgs[x.org] = 1; if (x.copyright_status) cops[x.copyright_status] = 1; });
+      // 分页（与 server.py api_pro_reports 一致）
+      var total = arr.length;
+      var pg = parseInt(p.get("page") || "1", 10); if (!pg || pg < 1) pg = 1;
+      var psz = parseInt(p.get("page_size") || "0", 10); if (!psz || psz < 0) psz = 0;
+      if (psz > 100) psz = 100;
+      var out = arr;
+      if (psz > 0) out = arr.slice((pg - 1) * psz, pg * psz);
+      return { reports: out, count: out.length, total: total, orgs: Object.keys(orgs), copyright_statuses: Object.keys(cops) };
+    }
+    if (path.indexOf("/api/pro-institutions") === 0) {
+      return DB.proInstitutions || { institutions: [], count: 0 };
+    }
+    if (path.indexOf("/api/decision-brief") === 0) {
+      // Stage 4（2026-08-05）：决策型日报静态路由
+      var q = new URLSearchParams(path.split("?")[1] || "");
+      var ddate = q.get("date") || "";
+      var arr = DB.decisionBriefs || [];
+      if (ddate) {
+        var hit = null;
+        for (var i = 0; i < arr.length; i++) { if (arr[i].brief_date === ddate) { hit = arr[i]; break; } }
+        return { brief: hit };
+      }
+      return { brief: arr.length ? arr[0] : null };
+    }
+    if (path.indexOf("/api/pro-compare") === 0) {
+      return { comparable: false, count: 0, reports: [], message: "静态归档版暂不支持多机构对比，请访问原站或联系管理员。" };
+    }
+    if (path.indexOf("/api/events") === 0) { var fa = filt(path.split("?")[1] || ""); return { events: fa, count: fa.length }; }
+    if (path.indexOf("/api/search") === 0) { var q = new URLSearchParams(path.split("?")[1] || "").get("q") || ""; var s = q.toLowerCase(); var fa = all().filter(function (e) { return [e.title_zh, e.title_original, e.summary, e.country, e.city, e.category].some(function (v) { return (v || "").toLowerCase().indexOf(s) >= 0; }); }); return { events: fa, count: fa.length }; }
+    return { error: "static-unknown-path", path: path };
+  }
+  // 关键修复：用 Promise 包裹，任何同步异常都转为 rejected，从而被页面 .catch 捕获，
+  // 避免原来“data.js 未加载时同步抛错、页面空白且无提示”的问题。
+  API.get = function (path) {
+    return new Promise(function (resolve, reject) {
+      try {
+        var r = match(path);
+        if (r && r.error) { reject(new Error("静态数据缺失：" + (r.error || path))); return; }
+        // F11：主数据（data.js，最新 2000 条）里没有的事件 → 按需拉历史分片
+        if (r && r.__shardEventId !== undefined) {
+          shardEvent(r.__shardEventId).then(function (ev) {
+            if (!ev) {
+              // 分片里也没有：说明该记录不满足公开条件（已隔离/未获发布资格/涉版权或安全限制）
+              resolve({ event: null, related: [], notPublic: true });
+              return;
+            }
+            resolve({ event: ev, related: relatedOf(ev) });
+          }).catch(function (err) { reject(err); });
+          return;
+        }
+        resolve(r);
+      } catch (e) { reject(e); }
+    });
+  };
+  API.post = function () { return Promise.resolve({ ok: false, static: true, msg: "静态归档版不支持该操作" }); };
+
+  // 若数据整体缺失，显示顶部提示条（各页面 .catch 还会显示具体错误）
+  if (!DB) {
+    document.addEventListener("DOMContentLoaded", function () {
+      var b = document.getElementById("dbError");
+      if (b) b.style.display = "block";
+    });
+  }
+})();
+</script>
+<script>
+renderHeader("methodology.html");
+</script>
+</body>
+</html>
